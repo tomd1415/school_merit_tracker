@@ -1,9 +1,11 @@
 // server.js
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const app = express();
 
+console.log('Database Host:', process.env.DB_HOST);
 // Import routes
 const pupilRoutes = require('./routes/pupilRoutes');
 

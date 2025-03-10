@@ -3,11 +3,11 @@ const { Pool } = require('pg');
 
 // Adjust these details for your database
 const pool = new Pool({
-  user: 'YOUR_DB_USER',
-  host: 'localhost',
-  database: 'YOUR_DB_NAME',
-  password: 'YOUR_DB_PASSWORD',
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASS,
+  port: process.env.DB_PORT,
 });
 
 module.exports = pool;

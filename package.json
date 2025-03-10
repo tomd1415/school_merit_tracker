@@ -1,0 +1,26 @@
+{
+  "name": "school_merit_tracker",
+  "version": "1.0.0",
+  "description": "The School merit tracker to track pupils remaining merits after buying rewards",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomd1415/school_merit_tracker.git"
+  },
+  "author": "Tom Duguid",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tomd1415/school_merit_tracker/issues"
+  },
+  "homepage": "https://github.com/tomd1415/school_merit_tracker#readme",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.3"
+  }
+}
