@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pupil Management</title>
+  <link rel="stylesheet" href="pupils.css" />
+</head>
+<body>
+  <header>
+    <!-- Exhall Grange logo -->
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Pupil Management</h1>
+  </header>
+  
+  <main>
+    <div class="button-bar">
+      <!-- Link to Add Pupil page -->
+      <button onclick="window.location.href='/pupils/add'">Add New Pupil</button>
+    </div>
+    
+    <table id="pupilTable">
+      <thead>
+        <tr>
+          <th>Pupil ID</th>
+          <th>Name</th>
+          <th>Form Group</th>
+          <th>Merits</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Pupils will be dynamically inserted here by pupils.js -->
+      </tbody>
+    </table>
+  </main>
+  
+  <script src="pupils.js"></script>
+</body>
+</html>
+

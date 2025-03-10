@@ -1,0 +1,57 @@
+/* public/addPupil/addPupil.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  background-color: #003a69;
+  color: #ffffff;
+  padding: 10px;
+}
+
+.exhall-logo {
+  height: 50px;
+  margin-right: 20px;
+}
+
+main {
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 10px;
+}
+
+input[type="text"] {
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #003a69;
+  border: none;
+  color: #ffffff;
+  padding: 10px;
+  margin-top: 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #005a98;
+}
+

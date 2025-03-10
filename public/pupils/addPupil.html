@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add New Pupil</title>
+  <link rel="stylesheet" href="addPupil.css">
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Add New Pupil</h1>
+  </header>
+  
+  <main>
+    <form action="/pupils/add" method="POST" id="addPupilForm">
+      <label for="pupilName">Pupil Name:</label>
+      <input type="text" id="pupilName" name="name" required>
+
+      <label for="formGroup">Form Group:</label>
+      <input type="text" id="formGroup" name="form_group" required>
+
+      <button type="submit">Add Pupil</button>
+    </form>
+  </main>
+
+  <script src="addPupil.js"></script>
+</body>
+</html>
+
