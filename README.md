@@ -1,4 +1,4 @@
-# School Reward Site ’database Setup
+# School Reward Site
 
 This document outlines the steps taken so far to set up the PostgreSQL database for the School Reward Site on Gentoo Linux. These instructions assume you have administrative (root or sudo) privileges on your Gentoo system. Adjust any commands as needed for your particular environment.
 
@@ -113,7 +113,7 @@ This should list the newly created tables (form, pupils, prizes, purchase, etc.)
 
 7. Handling Permissions
 
-If you encounter a •permission denied for schema publi`’ error, grant create privileges on the public schema to your user:
+If you encounter a â€¢permission denied for schema publi`â€™ error, grant create privileges on the public schema to your user:
 
 grant CREATE, USAGE oN SCHEMA public TO merit_user;
 
@@ -152,7 +152,7 @@ REASSIGN OWNED BY old_role TO merit_user;
 
 ## 9. Troubleshooting
 
-- Service Doesn”t Start:
+- Service Doesnâ€t Start:
 	Make sure the data directory is correctly set ap/var/lib/postgresql/15/data or the correct directory for your version.
 
 	sudo emerge --config dev-db/postgresql:15
@@ -167,7 +167,7 @@ REASSIGN OWNED BY old_role TO merit_user;
 - Permission Errors: 
 
 - Confirm that merit_user has privileges on the merits database with:
-  \v�u
+  \vâu
 
 	- Use GRANT statements or ALTER TABLE to fix ownership and privileges.
 
