@@ -1,0 +1,37 @@
+<!-- public/purchase/purchase.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Purchase Page</title>
+  <link rel="stylesheet" href="purchase.css">
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Purchase Prizes</h1>
+  </header>
+
+  <main>
+    <div id="prizeContainer">
+      <!-- JavaScript will populate with available prizes -->
+    </div>
+  </main>
+
+  <!-- Modal for selecting pupil -->
+  <div id="pupilModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <h2>Select Pupil</h2>
+      <input type="text" id="pupilSearch" placeholder="Type pupil name..." />
+      <div id="searchResults"></div>
+
+      <h3>Recently Selected Pupils</h3>
+      <div id="recentPupils"></div>
+    </div>
+  </div>
+
+  <script src="purchase.js"></script>
+</body>
+</html>
+
