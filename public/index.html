@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Merit Tracker</title>
+    <link rel="stylesheet" href="/styles/index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            text-align: center;
+            margin: 0;
+        }
+        header {
+            background-color: #003a69;
+            color: #ffffff;
+            padding: 20px;
+            font-size: 24px;
+        }
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+        .menu-item {
+            background-color: #005a98;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+        .menu-item:hover {
+            background-color: #007acc;
+        }
+    </style>
+</head>
+<body>
+    <header>School Merit Tracker</header>
+    <div class="menu">
+        <a href="/pupils" class="menu-item">Manage Pupils</a>
+        <a href="/prizes" class="menu-item">Manage Prizes</a>
+        <a href="/purchase" class="menu-item">Purchase Prizes</a>
+        <a href="/upload/csv/pupils" class="menu-item">Upload Pupils CSV</a>
+        <a href="/upload/csv/merits" class="menu-item">Upload Merits CSV</a>
+        <a href="/prizes/add" class="menu-item">Add New Prize</a>
+        <a href="/pupils/add" class="menu-item">Add New Pupil</a>
+    </div>
+</body>
+</html>
+
