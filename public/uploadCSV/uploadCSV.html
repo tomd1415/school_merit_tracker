@@ -1,0 +1,32 @@
+<!-- public/uploadCSV/uploadCSV.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload CSV (Pupils)</title>
+  <link rel="stylesheet" href="/uploadCSV/uploadCSV.css" />
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Upload CSV for Pupils</h1>
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <h2>Select CSV file</h2>
+      <form id="uploadForm" action="/upload/csv/pupils" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="csvFile">CSV File:</label>
+          <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
+        </div>
+        <button type="submit">Upload</button>
+      </form>
+      <p id="uploadMessage"></p>
+    </section>
+  </main>
+
+  <script src="/uploadCSV/uploadCSV.js"></script>
+</body>
+</html>
+
