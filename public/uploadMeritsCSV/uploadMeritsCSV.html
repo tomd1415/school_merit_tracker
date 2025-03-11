@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Merits CSV</title>
+  <link rel="stylesheet" href="/uploadMeritsCSV/uploadMeritsCSV.css" />
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Upload CSV to Update Merits</h1>
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <h2>Select CSV file</h2>
+      <!-- We'll do AJAX, so no action= or method= needed if we handle in JS. -->
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="csvFile">CSV File:</label>
+          <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
+        </div>
+        <button type="submit">Upload</button>
+      </form>
+      <div id="uploadMessage"></div>
+
+      <div class="error-box" id="errorBox" style="display: none;">
+        <h3>Could Not Update These Pupils (Not Found):</h3>
+        <ul id="errorList"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="/uploadMeritsCSV/uploadMeritsCSV.js"></script>
+</body>
+</html>
+

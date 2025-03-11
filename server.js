@@ -20,7 +20,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Attach /pupils routes
 app.use('/pupils', pupilRoutes);
-
 app.use('/prizes', prizeRoutes);
 app.use('/upload/csv', csvRoutes);
 // Example of a default route to redirect or show a home page

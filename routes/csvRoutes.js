@@ -16,5 +16,9 @@ router.get('/pupils', csvController.showUploadPupilCSVPage);
 // Handle CSV file upload
 router.post('/pupils', upload.single('csvFile'), csvController.uploadPupilCSV);
 
+// Add a new route for "upload merits CSV"
+router.post('/merits', upload.single('csvFile'), csvController.uploadMeritsCSV);
+
+
 module.exports = router;
 
