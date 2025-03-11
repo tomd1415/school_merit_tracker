@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await res.json();
       if (data.success) {
-        alert(`Purchase successful! New merits: ${data.newMerits}`);
+        alert(`Purchase successful! New merits: ${data.newRemaining}`);
         // Add pupil to the front of recent pupils
         addRecentPupil(pupil_id, data.newMerits);
       }
