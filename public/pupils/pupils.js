@@ -12,8 +12,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${pupil.pupil_id}</td>
-        <td>${pupil.name}</td>
-        <td>${pupil.form_group}</td>
+        <td>${pupil.first_name} ${pupil.last_name}</td>
+        <td>${pupil.form_name}</td>
         <td>${pupil.merits}</td>
         <td>
           <button onclick="window.location.href='/pupils/edit/${pupil.pupil_id}'">

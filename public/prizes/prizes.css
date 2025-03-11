@@ -1,0 +1,69 @@
+/* public/prizes/prizes.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+}
+
+/* Header with dark blue background */
+header {
+  display: flex;
+  align-items: center;
+  background-color: #003a69;
+  color: #ffffff;
+  padding: 10px;
+}
+
+.exhall-logo {
+  height: 50px;
+  margin-right: 20px;
+}
+
+h1 {
+  margin: 0;
+}
+
+main {
+  padding: 20px;
+}
+
+.button-bar {
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: #003a69;
+  border: none;
+  color: #ffffff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #005a98;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table thead {
+  background-color: #f2f2f2;
+}
+
+table th, table td {
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #cccccc;
+}
+
+table td button {
+  margin-right: 8px;
+}
+

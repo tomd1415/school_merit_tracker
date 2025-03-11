@@ -21,3 +21,12 @@ build/
 .idea/
 .vscode/
 
+.git/
+
+package-lock.json
+
+LICENSE
+
+output.txt
+
+images/

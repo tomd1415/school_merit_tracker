@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Pupil</title>
+  <link rel="stylesheet" href="/addPupil/addPupil.css">
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Add a New Pupil</h1>
+  </header>
+
+  <main>
+    <!-- Section A: Add Pupil Form -->
+    <section class="add-pupil-section">
+      <h2>New Pupil Details</h2>
+      <form action="/pupils/add" method="POST" id="addPupilForm">
+        <div class="form-group">
+          <label for="firstName">First Name:</label>
+          <input type="text" id="firstName" name="first_name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name:</label>
+          <input type="text" id="lastName" name="last_name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="formSelect">Select Form:</label>
+          <select id="formSelect" name="form_id" required>
+            <option value="">-- Select a Form --</option>
+            <!-- Populated by addPupil.js -->
+          </select>
+        </div>
+
+        <button type="submit">Add Pupil</button>
+      </form>
+    </section>
+
+    <!-- Section B: Add Form -->
+    <section class="add-form-section">
+      <h2>Add a New Form</h2>
+      <!-- We'll do an AJAX request to /pupils/addForm -->
+      <form id="addForm">
+        <div class="form-group">
+          <label for="newFormName">Form Name:</label>
+          <input type="text" id="newFormName" name="form_name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="newFormTutor">Form Tutor:</label>
+          <input type="text" id="newFormTutor" name="form_tutor" required />
+        </div>
+
+        <div class="form-group">
+          <label for="newYearGroup">Year Group:</label>
+          <!-- year_group is an integer 0..14 -->
+          <input type="number" id="newYearGroup" name="year_group" min="0" max="14" required />
+        </div>
+
+        <button type="submit">Create Form</button>
+      </form>
+      <p id="addFormMessage"></p>
+    </section>
+  </main>
+
+  <script src="/addPupil/addPupil.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,75 @@
+/* public/addPrize/addPrize.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  background-color: #003a69;
+  color: #ffffff;
+  padding: 10px;
+}
+
+.exhall-logo {
+  height: 50px;
+  margin-right: 20px;
+}
+
+main {
+  padding: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+section {
+  background-color: #f7f7f7;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 30px;
+}
+
+h1 {
+  margin: 0;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+label {
+  display: inline-block;
+  width: 150px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+input[type="text"],
+input[type="number"] {
+  padding: 8px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #003a69;
+  border: none;
+  color: #ffffff;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #005a98;
+}
+

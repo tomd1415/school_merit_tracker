@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const app = express();
+const prizeRoutes = require('./routes/prizeRoutes');
 
 console.log('Database Host:', process.env.DB_HOST);
 // Import routes
@@ -18,6 +19,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Attach /pupils routes
 app.use('/pupils', pupilRoutes);
+
+app.use('/prizes', prizeRoutes);
 
 // Example of a default route to redirect or show a home page
 app.get('/', (req, res) => {

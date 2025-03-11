@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prize Management</title>
+  <link rel="stylesheet" href="prizes.css" />
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Prize Management</h1>
+  </header>
+
+  <main>
+    <div class="button-bar">
+      <!-- Link to Add Prize page -->
+      <button onclick="window.location.href='/prizes/add'">Add New Prize</button>
+    </div>
+
+    <table id="prizeTable">
+      <thead>
+        <tr>
+          <th>Prize ID</th>
+          <th>Description</th>
+          <th>Merit Cost</th>
+          <th>Money Cost</th>
+          <th>Image Path</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamically inserted by prizes.js -->
+      </tbody>
+    </table>
+  </main>
+
+  <script src="prizes.js"></script>
+</body>
+</html>
+

@@ -12,6 +12,9 @@ router.get('/all/json', pupilController.getAllPupils);
 // 3) Show the "Add Pupil" page (HTML)
 router.get('/add', pupilController.showAddPupilForm);
 
+// Return all active forms as JSON
+router.get('/getForms', pupilController.getAllForms);
+
 // 4) Handle "Add Pupil" form submission
 router.post('/add', pupilController.addPupil);
 
@@ -20,6 +23,9 @@ router.get('/edit/:id', pupilController.showEditPupilForm);
 
 // 6) Handle "Edit Pupil" form submission
 router.post('/edit/:id', pupilController.editPupil);
+
+// Handle "Add Form" submission
+router.post('/addForm', pupilController.addForm);
 
 // 7) Handle "Delete Pupil"
 router.get('/delete/:id', pupilController.deletePupil);

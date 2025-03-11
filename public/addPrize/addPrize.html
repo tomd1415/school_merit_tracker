@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Prize</title>
+  <link rel="stylesheet" href="/addPrize/addPrize.css">
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Add a New Prize</h1>
+  </header>
+
+  <main>
+    <section class="add-prize-section">
+      <h2>New Prize Details</h2>
+      <form action="/prizes/add" method="POST" id="addPrizeForm">
+        <div class="form-group">
+          <label for="description">Description:</label>
+          <input type="text" id="description" name="description" required />
+        </div>
+
+        <div class="form-group">
+          <label for="costMerits">Cost (Merits):</label>
+          <input type="number" id="costMerits" name="cost_merits" min="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="costMoney">Cost (Money):</label>
+          <input type="number" id="costMoney" name="cost_money" min="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="imagePath">Image Path:</label>
+          <input type="text" id="imagePath" name="image_path" required />
+        </div>
+
+        <button type="submit">Add Prize</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/addPrize/addPrize.js"></script>
+</body>
+</html>
+
