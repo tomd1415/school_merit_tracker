@@ -7,32 +7,74 @@
 </head>
 <body>
   <header>
-    <!-- Exhall Grange logo -->
     <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
     <h1>Pupil Management</h1>
   </header>
   
   <main>
     <div class="button-bar">
-      <!-- Link to Add Pupil page -->
       <button onclick="window.location.href='/pupils/add'">Add New Pupil</button>
+      
+      <label for="formFilter">Filter by Form:</label>
+      <select id="formFilter">
+        <option value="">All</option>
+      </select>
+      
+      <label for="inlineEditToggle">Allow Inline Edit:</label>
+      <input type="checkbox" id="inlineEditToggle" />
     </div>
     
     <table id="pupilTable">
       <thead>
         <tr>
-          <th>Pupil ID</th>
-          <th>Name</th>
+          <!-- No more Pupil ID column -->
+          <th>First Name</th>
+          <th>Last Name</th>
           <th>Form Group</th>
           <th>Merits</th>
+          <th>Remaining Merits</th> <!-- new column -->
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Pupils will be dynamically inserted here by pupils.js -->
+        <!-- Populated by pupils.js -->
       </tbody>
     </table>
   </main>
+  
+  <!-- The Edit Modal (unchanged, except it no longer needs an ID field displayed) -->
+  <div id="editModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>Edit Pupil</h2>
+      <form id="editPupilForm">
+        <input type="hidden" id="editPupilId" />
+        <div>
+          <label>First Name:</label>
+          <input type="text" id="editFirstName" required/>
+        </div>
+        <div>
+          <label>Last Name:</label>
+          <input type="text" id="editLastName" required/>
+        </div>
+        <div>
+          <label>Form:</label>
+          <select id="editFormSelect" required>
+            <!-- Populated by JavaScript -->
+          </select>
+        </div>
+        <div>
+          <label>Merits:</label>
+          <input type="number" id="editMerits" min="0" required />
+        </div>
+        <div id="editModalFeedback" class="feedback" style="color:red;"></div>
+        <div>
+          <button type="submit">Save</button>
+          <button type="button" id="cancelEditBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
   
   <script src="pupils.js"></script>
 </body>

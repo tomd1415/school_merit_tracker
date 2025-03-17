@@ -3,31 +3,34 @@ const express = require('express');
 const router = express.Router();
 const pupilController = require('../controllers/pupilController');
 
-// 1) Show main Pupils page (HTML)
+// Show main Pupils page
 router.get('/', pupilController.showPupilPage);
 
-// 2) Return all Pupils as JSON (used by pupils.js)
+// Return Pupils as JSON with optional filter
 router.get('/all/json', pupilController.getAllPupils);
 
-// 3) Show the "Add Pupil" page (HTML)
-router.get('/add', pupilController.showAddPupilForm);
+// Get single pupil by ID (for editing)
+router.get('/:id/json', pupilController.getSinglePupil);
+
+// Show the "Add Pupil" page
+//router.get('/add', pupilController.showAddPupilForm);
 
 // Return all active forms as JSON
 router.get('/getForms', pupilController.getAllForms);
 
-// 4) Handle "Add Pupil" form submission
+// Handle "Add Pupil"
 router.post('/add', pupilController.addPupil);
 
-// 5) Show the "Edit Pupil" page
+// Show the "Edit Pupil" page (unused if using modal)
 router.get('/edit/:id', pupilController.showEditPupilForm);
 
-// 6) Handle "Edit Pupil" form submission
+// Handle "Edit Pupil"
 router.post('/edit/:id', pupilController.editPupil);
 
-// Handle "Add Form" submission
+// Handle "Add Form"
 router.post('/addForm', pupilController.addForm);
 
-// 7) Handle "Delete Pupil"
+// Handle "Delete Pupil" (set active=false)
 router.get('/delete/:id', pupilController.deletePupil);
 
 module.exports = router;
