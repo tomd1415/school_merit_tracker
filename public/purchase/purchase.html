@@ -1,4 +1,3 @@
-<!-- public/purchase/purchase.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,23 +12,34 @@
   </header>
 
   <main>
+    <h2 class="page-subtitle">Tap on a prize to begin purchase</h2>
     <div id="prizeContainer">
       <!-- JavaScript will populate with available prizes -->
     </div>
   </main>
 
-  <!-- Modal for selecting pupil -->
+  <!-- Existing Modal for selecting pupil -->
   <div id="pupilModal" class="modal">
     <div class="modal-content">
       <span id="closeModal" class="close">&times;</span>
       <h2>Select Pupil</h2>
       <input type="text" id="pupilSearch" placeholder="Type pupil name..." />
       <div id="searchResults"></div>
-
       <h3>Recently Selected Pupils</h3>
       <div id="recentPupils"></div>
     </div>
   </div>
+
+  <!-- New Modal for purchase confirmation -->
+<div id="confirmationModal" class="modal">
+  <div class="modal-content">
+    <span id="closeConfirmation" class="close">&times;</span>
+    <h2>Purchase Confirmed</h2>
+    <p id="confirmationMessage"></p>
+    <button id="confirmationOkBtn">OK</button>
+    <button id="cancelPurchaseBtn">Cancel Purchase</button>
+  </div>
+</div>
 
   <script src="purchase.js"></script>
 </body>

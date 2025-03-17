@@ -113,3 +113,9 @@ GROUP BY
     p.last_name,
     p.merits;
 
+ALTER TABLE purchase OWNER TO merit_user;
+ALTER TABLE prizes OWNER TO merit_user;
+ALTER TABLE form OWNER TO merit_user;
+ALTER TABLE pupils OWNER TO merit_user;
+ALTER VIEW prize_stock OWNER TO merit_user;
+ALTER VIEW pupil_remaining_merits OWNER TO merit_user;

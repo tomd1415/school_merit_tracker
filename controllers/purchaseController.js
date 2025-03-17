@@ -98,18 +98,51 @@ exports.createPurchase = async (req, res) => {
     }
 
     // 4) Insert into purchase (do NOT update pupils.merits)
-    await pool.query(`
+    const insertResult = await pool.query(`
       INSERT INTO purchase (pupil_id, prize_id, merit_cost_at_time, date, active)
       VALUES ($1, $2, $3, NOW(), TRUE)
+      RETURNING purchase_id
     `, [pupil_id, prize_id, cost_merits]);
 
-    // Done
+    // This is the newly created purchase ID
+    const newPurchaseId = insertResult.rows[0].purchase_id;
+
+    // Return both newRemaining and newPurchaseId so front-end can track it
     return res.json({ 
       success: true, 
-      newRemaining: currentRemaining - cost_merits // if you want to show the updated leftover 
+      newRemaining: currentRemaining - cost_merits,
+      newPurchaseId
     });
   } catch (err) {
     console.error('Error creating purchase:', err);
     res.status(500).json({ error: 'Failed to create purchase' });
   }
 };
+// controllers/purchaseController.js
+
+// 5) Cancel (undo) a purchase by ID
+exports.cancelPurchase = async (req, res) => {
+  try {
+    const { purchaseId } = req.params;
+
+    // Delete that purchase record. Alternatively, you could do a "soft delete"
+    // e.g., UPDATE purchase SET active=false WHERE purchase_id=$1
+    const result = await pool.query(`
+      DELETE FROM purchase
+      WHERE purchase_id = $1
+      RETURNING purchase_id
+    `, [purchaseId]);
+
+    if (result.rowCount === 0) {
+      // No matching purchase found
+      return res.status(404).json({ error: 'Purchase not found' });
+    }
+
+    // If successful:
+    return res.json({ success: true, message: 'Purchase canceled' });
+  } catch (err) {
+    console.error('Error canceling purchase:', err);
+    res.status(500).json({ error: 'Failed to cancel purchase' });
+  }
+};
+

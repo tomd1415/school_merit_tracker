@@ -15,5 +15,8 @@ router.get('/searchPupil', purchaseController.searchPupil);
 // 4) Create a Purchase
 router.post('/create', purchaseController.createPurchase);
 
+// 5) Cancel (DELETE) a Purchase by ID
+router.delete('/cancel/:purchaseId', purchaseController.cancelPurchase);
+
 module.exports = router;
 
