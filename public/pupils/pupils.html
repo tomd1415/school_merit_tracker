@@ -13,8 +13,11 @@
   
   <main>
     <div class="button-bar">
-      <button onclick="window.location.href='/pupils/add'">Add New Pupil</button>
-      
+      <!-- NEW: Add Pupil button that opens the "Add Pupil" modal -->
+      <button id="addPupilBtn">Add Pupil</button>
+      <!-- NEW: Add Form button that opens the "Add Form" modal -->
+      <button id="addFormBtn">Add Form</button>
+
       <label for="formFilter">Filter by Form:</label>
       <select id="formFilter">
         <option value="">All</option>
@@ -27,22 +30,19 @@
     <table id="pupilTable">
       <thead>
         <tr>
-          <!-- No more Pupil ID column -->
           <th>First Name</th>
           <th>Last Name</th>
           <th>Form Group</th>
           <th>Merits</th>
-          <th>Remaining Merits</th> <!-- new column -->
+          <th>Remaining Merits</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- Populated by pupils.js -->
-      </tbody>
+      <tbody><!-- Pupils inserted dynamically --></tbody>
     </table>
   </main>
   
-  <!-- The Edit Modal (unchanged, except it no longer needs an ID field displayed) -->
+  <!-- Existing Edit Modal (unchanged) -->
   <div id="editModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
@@ -51,17 +51,15 @@
         <input type="hidden" id="editPupilId" />
         <div>
           <label>First Name:</label>
-          <input type="text" id="editFirstName" required/>
+          <input type="text" id="editFirstName" required />
         </div>
         <div>
           <label>Last Name:</label>
-          <input type="text" id="editLastName" required/>
+          <input type="text" id="editLastName" required />
         </div>
         <div>
           <label>Form:</label>
-          <select id="editFormSelect" required>
-            <!-- Populated by JavaScript -->
-          </select>
+          <select id="editFormSelect" required></select>
         </div>
         <div>
           <label>Merits:</label>
@@ -75,7 +73,63 @@
       </form>
     </div>
   </div>
-  
+
+  <!-- NEW: Add Pupil Modal -->
+  <div id="addPupilModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn" id="closeAddPupilModal">&times;</span>
+      <h2>Add New Pupil</h2>
+      <form id="addPupilForm">
+        <div>
+          <label>First Name:</label>
+          <input type="text" id="addPupilFirstName" required />
+        </div>
+        <div>
+          <label>Last Name:</label>
+          <input type="text" id="addPupilLastName" required />
+        </div>
+        <div>
+          <label>Form:</label>
+          <select id="addPupilFormSelect" required>
+            <!-- Populated by JavaScript from formsData -->
+          </select>
+        </div>
+        <div id="addPupilFeedback" class="feedback" style="color:red;"></div>
+        <div>
+          <button type="submit">Add Pupil</button>
+          <button type="button" id="cancelAddPupilBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- NEW: Add Form Modal -->
+  <div id="addFormModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn" id="closeAddFormModal">&times;</span>
+      <h2>Add New Form</h2>
+      <form id="addFormForm">
+        <div>
+          <label>Form Name:</label>
+          <input type="text" id="addFormName" required />
+        </div>
+        <div>
+          <label>Form Tutor:</label>
+          <input type="text" id="addFormTutor" />
+        </div>
+        <div>
+          <label>Year Group:</label>
+          <input type="text" id="addFormYearGroup" />
+        </div>
+        <div id="addFormFeedback" class="feedback" style="color:red;"></div>
+        <div>
+          <button type="submit">Add Form</button>
+          <button type="button" id="cancelAddFormBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="pupils.js"></script>
 </body>
 </html>

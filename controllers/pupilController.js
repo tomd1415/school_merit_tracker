@@ -66,7 +66,7 @@ exports.addPupil = async (req, res) => {
     `;
     await pool.query(insertQuery, [first_name, last_name, form_id]);
 
-    res.redirect('/pupils');
+    res.json({ message: 'Pupil added successfully' });
   } catch (err) {
     console.error('Error adding pupil:', err);
     res.status(500).send('Failed to add pupil');
