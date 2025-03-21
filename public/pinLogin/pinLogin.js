@@ -8,14 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update the display to show number of entered digits or placeholders
   function updateDisplay() {
-    // For security: show bullet points or placeholders
-    const masked = enteredDigits.map(() => '•').join('');
-    // If you want exactly 6 placeholders always, do this:
-    const placeholders = '••••••'.split('');
-    for (let i = 0; i < enteredDigits.length; i++) {
-      placeholders[i] = '•';
-    }
-    pinDisplay.textContent = placeholders.join('');
+      // Create a string of as many '•' as the number of digits
+  pinDisplay.textContent = '•'.repeat(enteredDigits.length);
   }
 
   function addDigit(digit) {

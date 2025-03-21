@@ -16,9 +16,16 @@ h1 {
 }
 
 #pinDisplay {
-  font-size: 2rem;
-  margin-bottom: 20px;
+  width: 150px;          /* Enough width for ~6 dots */
+  height: 50px;          /* Fixed height */
+  border: 2px solid #333;
+  border-radius: 6px;    /* optional rounded corners */
+  margin: 0 auto 20px;   /* 20px bottom margin, center horizontally */
+  text-align: center;
+  line-height: 50px;     /* Vertically center the dots */
+  font-size: 2rem;       /* Make dots bigger */
 }
+
 
 .keypad {
   display: grid;
