@@ -165,3 +165,71 @@ exports.deletePrize = async (req, res) => {
   }
 };
 
+exports.addPrize = async (req, res) => {
+  try {
+    const { description, cost_merits, cost_money } = req.body;
+    // Ensure a file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: 'Image upload required' });
+    }
+    // Build the publically accessible path for the image
+    const image_path = '/images/' + req.file.filename;
+
+    const insertQuery = `
+      INSERT INTO prizes 
+        (description, cost_merits, cost_money, image_path, total_stocked_ever, stock_adjustment, active)
+      VALUES 
+        ($1, $2, $3, $4, 0, 0, true);
+    `;
+    await pool.query(insertQuery, [description, cost_merits, cost_money, image_path]);
+
+    // For AJAX or JSON responses you might return JSON,
+    // but here we redirect back to the prizes page.
+    res.redirect('/prizes');
+  } catch (err) {
+    console.error('Error adding prize:', err);
+    res.status(500).send('Failed to add prize');
+  }
+};
+
+/**
+ * Handle "Edit Prize" form submission.
+ */
+exports.editPrize = async (req, res) => {
+  const { id } = req.params;
+  let { description, cost_merits, cost_money, active } = req.body;
+  // Set image_path to the original path unless a new image is uploaded
+  let image_path = req.body.image_path || '';
+
+  // If a new file was uploaded, update image_path accordingly
+  if (req.file) {
+    image_path = '/images/' + req.file.filename;
+  }
+
+  try {
+    const updateQuery = `
+      UPDATE prizes
+      SET
+        description = $1,
+        cost_merits = $2,
+        cost_money = $3,
+        image_path = $4,
+        active = $5
+      WHERE prize_id = $6;
+    `;
+    await pool.query(updateQuery, [
+      description,
+      cost_merits,
+      cost_money,
+      image_path,
+      active === 'true' || active === true,
+      id
+    ]);
+
+    res.redirect('/prizes');
+  } catch (err) {
+    console.error('Error editing prize:', err);
+    res.status(500).send('Failed to edit prize');
+  }
+};
+
