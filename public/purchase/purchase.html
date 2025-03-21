@@ -46,6 +46,35 @@
 </div>
 
   <script src="purchase.js"></script>
+    <script>
+  // Immediately after the DOM is loaded, create a button 
+  // in the top-right corner of the header or body:
+  document.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('header');
+    if (header) {
+      const signOutBtn = document.createElement('button');
+      signOutBtn.textContent = 'Sign Out';
+      Object.assign(signOutBtn.style, {
+        position: 'absolute',
+        right: '20px',
+        top: '10px',
+        backgroundColor: '#005a98',
+        border: 'none',
+        color: '#ffffff',
+        padding: '8px 16px',
+        cursor: 'pointer',
+        borderRadius: '4px'
+      });
+      signOutBtn.addEventListener('click', () => {
+        window.location.href = '/logout';
+      });
+      // Positioning: might need a "position: relative" on the header
+      header.style.position = 'relative';
+      header.appendChild(signOutBtn);
+    }
+  });
+</script>
+
 </body>
 </html>
 
