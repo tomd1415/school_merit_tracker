@@ -1,185 +1,178 @@
 # School Reward Site
 
-This document outlines the steps taken so far to set up the PostgreSQL database for the School Reward Site on Gentoo Linux. These instructions assume you have administrative (root or sudo) privileges on your Gentoo system. Adjust any commands as needed for your particular environment.
+The School Reward Site is a Node.js + PostgreSQL application that tracks pupil merits and allows teachers to “purchase” prizes on behalf of pupils. It’s designed for easy, tablet-friendly interaction, with a custom 6-digit PIN login flow.
 
 ---
 
-## 1. Install PostgreSQL on Gentoo
+## 1. Overview
 
-1. Sync the Portage tree:
-   sudo emerge --sync
-
-2. Install PostgreSQL (e.g., version 15):
-   sudo emerge --ask dev-db/postgresql:15
-
-3. Configure the newly installed PostgreSQL:
-   sudo emerge --config dev-db/postgresql:15
-   This step initializes your PostgreSQL data directory (commonly found under /var/lib/postgresql/15/data or a similar path).
-
-
----
-
-## 2. Start and Enable PostgreSQL
-
-1. Start the PostgreSQL service:
-   sudo rc-service postgresql start
-
-2. Enable PostgreSQL to start automatically on boot:
-   sudo rc-update add postgresql default
-
+- **Node.js + Express** server with a **PostgreSQL** backend.
+- Pupils, Prizes, and Purchases are stored in separate tables. A `pupil_remaining_merits` view calculates each pupil’s remaining merits.
+- Two PINs for authentication:
+  - **Purchase PIN** for purchase-only access.
+  - **Full PIN** for full administrative tasks.
+- Teachers can:
+  - Manage Pupils (add/edit/delete)
+  - Manage Prizes (add/edit/delete/stock)
+  - Purchase Prizes (touchscreen-friendly)
+  - Upload Pupils CSV (bulk import)
+  - Upload Merits CSV (add merits in bulk)
 
 ---
 
-3# 3. Verify PostgreSQL Installation
-open psql as apostgres user:
+## 2. Directory Structure
 
-"sudo -iu postgres"
+- **controllers/**  
+  Houses controller logic (csvController, pinController, prizeController, pupilController, purchaseController).
+  
+- **routes/**  
+  Contains Express router files (pupilRoutes, prizeRoutes, purchaseRoutes, csvRoutes, pinRoutes) mapping endpoints to controllers.
 
+- **public/**  
+  Front-end HTML, CSS, JS for each feature/page (pupils, prizes, purchase, upload CSV, etc.).  
+  - Shared scripts like `commonMenu.js` can dynamically insert a top menu and sign-out button on most pages.
 
-Check if PostgreSQL is running:
+- **middlewares/**  
+  Contains `auth.js` with `requireFullAccess` and `requirePurchaseAccess` for route protection.
 
-pg-isready
+- **server.js**  
+  Main entry point for Express. Configures sessions, routes, static file serving.
 
-You can also verify via:
+- **db.js**  
+  Connects to PostgreSQL using environment variables.
 
-"psql -c "SELECT version()""
+- **create_tables.sql**  
+  Defines schema (form, pupils, prizes, purchase) and views (`prize_stock`, `pupil_remaining_merits`).
 
-(This enters psql as postgres and prints out the PostgreSQL version.)
-
-
----
-
-4. Create a New Database and User
-
-### 4.1 Creating the Database
-
-While logged in as the postgres user, enter the psql shell:
-
-psql
-
-Create a database named merits:
-
-CREATE DATABASE merits;
-
-### 4.2 Creating a User
-
-Create a new role (user) named merit_user with an encrypted password:
-
-CREATE USER merit_user WITH: ENCRYPTED PASSWORD 'yourpassword';
-
-Grant all privileges on the merits database to merit_user:
-
-GRANT ALL PRIVILEGES ON DATABASE merits TO merit_user;
-
-Exit psql:
-
-\q
-
+- **package.json**  
+  Lists Node dependencies (express, pg, csv-parser, multer, etc.).
 
 ---
 
-## 5. Checking Databases and Users
+## 3. Authentication & PINs
 
-- Show list existing databases inside psql:
-   `l`
-- Show list users (roles) inside psql:
-   `\u `
-
----
-
-## 6. Import the Schema
-
-We have an SQL file (e.g., create_tables.sql) containing the table definitions and other objects needed for this project.
-
-Example:
-psql -U merit_user -d merits -f /path/to/create_tables.sql
-eplace /path/to/create_tables.sql with the actual path
-to your file.
-
-Replace /path/to/create_tables.sql with the actual path to your file.
-
-Once imported, verify the tables were created:
-
-"psql -U merit_user -d merits"
-
-Then inside psql:
-
-"\dt"
-
-This should list the newly created tables (form, pupils, prizes, purchase, etc.)
-
+- `.env` holds `PURCHASE_PIN` and `FULL_PIN`. Teachers enter a 6-digit PIN at `/enter-pin`.  
+- If they enter the purchase PIN, they get “purchase” role; if full PIN, “full” role.  
+- Session cookie expires after 1 hour (configurable in `server.js`).  
+- A “Sign Out” button calls `/logout`, clearing the session.
 
 ---
 
-7. Handling Permissions
+## 4. Menu & Sign Out
 
-If you encounter a â€¢permission denied for schema publi`â€™ error, grant create privileges on the public schema to your user:
-
-grant CREATE, USAGE oN SCHEMA public TO merit_user;
-
-Then re-run your import command. You can also change table ownershis if you need merit_user to own the tables:
-
-alter TABLE table_name OWNER TO merit_user;
-
-
-2. To reassign all objects from one role to another, connect as a superuser and run:
-
-BEAFORE: This ass covers ALL OBJECTS oned by that role in the current database (tables, views, sequences, etc.).
-
-Example:
-
-REASSIGN OWNED BY old_role TO merit_user;
+- Most pages load `commonMenu.js`, which inserts a top-centered menu and a sign-out button (top-right).
+- The Purchase page omits the main menu but still shows a sign-out button.  
+- Links in the menu:
+  - Manage Pupils
+  - Manage Prizes
+  - Purchase Prizes
+  - Upload Pupils CSV
+  - Upload Merits CSV
 
 ---
 
-## 8. Next Steps
+## 5. Managing Pupils
 
-1. Import Pupil Merits:
-	You may have a CSV file with pupil names and the number of merits they have. The next step is to import that data (e.g., via COPY statements or by parsing it in your Node.js code).
-
-2. Set Up Node.js Application:
-  - Build a Node.js server (using Express or similar) that connects to this PostgreSQL database.
-  - Implement routes for adding/removing merits, displaying pupil data, etc.
-  - Keep the UI touch-friendly for tablets.
-
-
-3. Extend for Future Features:
-	- Keep track of prize stock and alert when running low.
-	- Allow pupils to log in to see their merits.
-	- Add more security checks (e.g., authentication, authorization, etc.).
+- Pupils can be added, edited (inline or via modal), or set inactive.  
+- CSV import (first_name, last_name, form_id) can bulk-insert new pupils.  
+- Pupils table tracks `merits` integer; the `pupil_remaining_merits` view subtracts purchased items from this total.
 
 ---
 
-## 9. Troubleshooting
+## 6. Managing Prizes
 
-- Service Doesnâ€t Start:
-	Make sure the data directory is correctly set ap/var/lib/postgresql/15/data or the correct directory for your version.
-
-	sudo emerge --config dev-db/postgresql:15
-
-	Verify /var/lib/postgresql/15/data (or the correct directory for your slot/version) exists.
-
-
-- Connection Issues:
-  - Check listen_addresses in postgresql.conf and pg_hba.conf if remote access is needed.
-  - Verify firewall settings if connecting from another machine.
-
-- Permission Errors: 
-
-- Confirm that merit_user has privileges on the merits database with:
-  \vâu
-
-	- Use GRANT statements or ALTER TABLE to fix ownership and privileges.
+- Prizes page lists all prizes. You can add a new prize, upload an image, edit cost, etc.
+- A column for stock/stock_adjustment can be updated (planned to be made inline-editable).
+- Prizes can be deleted or set inactive. “Current Stock” can be displayed from the `prize_stock` view.
 
 ---
 
-## 10. References
+## 7. Purchase Prizes
 
-- Gentoo PostgreSQL Wiki: https://wiki.gentoo.org/wiki/PostgreSQL
-- PostgreSQL Official Docs: https://www.postgresql.org/docs/
-- Node.js Documentation: https://node.js.org/en/docs
-
+- The purchase page is touchscreen-friendly. Tap a prize, then select a pupil via a search box.
+- Deducts the required merits from `pupil_remaining_merits`. If insufficient, blocks purchase.
+- A “Cancel Purchase” or “refund” feature is planned to allow reversing mistakes or changes in cost.
 
 ---
 
-This document summarizes the steps taken so far to set up the PostgreSQL database on Gentoo Linux for the School Reward Site. Feel free to modify or extend as the project evolves.
+## 8. Uploading CSVs
+
+- **`/upload/csv/pupils`**: Import new pupils with “first_name,last_name,form_id”. Duplicates are skipped.
+- **`/upload/csv/merits`**: Add merits to existing pupils in bulk with “first_name,last_name,merits”. Rows for unknown pupils appear in a “missing” list.
+
+---
+
+## 9. Planned Features
+
+1. **Prize Stock**: Inline editing on the Manage Prizes page to track exact stock or use “stock_adjustment” in real time.
+2. **Pupil Self-Check**: Pupils can enter a 6-digit PIN (unique to each pupil) to see their own remaining merits.
+3. **Refund / Cost Override**: A button on Purchase to revert or modify a purchase’s cost if needed.
+
+---
+
+## 10. Installation & Setup
+
+1. **Set Up PostgreSQL**  
+   - **Install** PostgreSQL on your system.  
+   - **Create** a user and a database. For example:
+     ```
+     sudo -iu postgres
+     psql
+     CREATE DATABASE merits;
+     CREATE USER merit_user WITH ENCRYPTED PASSWORD 'yourpassword';
+     GRANT ALL PRIVILEGES ON DATABASE merits TO merit_user;
+     \q
+     ```
+   - **Import** the schema:
+     ```
+     psql -U merit_user -d merits -f create_tables.sql
+     ```
+   - If you have sample data, import it too (like `testdata/sampledata.sql`).
+
+2. **Environment Variables (.env)**  
+   - Create a `.env` in the project root:
+     ```
+     DB_HOST=localhost
+     DB_PORT=5432
+     DB_USER=merit_user
+     DB_PASS=yourpassword
+     DB_NAME=merits
+
+     PURCHASE_PIN=111111
+     FULL_PIN=222222
+     ```
+   - Adjust values as needed.
+
+3. **Install Node Dependencies**  
+   - In the project root:
+     ```
+     npm install
+     ```
+
+4. **Run the Server**  
+   - Start the app:
+     ```
+     node server.js
+     ```
+     or
+     ```
+     npm start
+     ```
+   - By default, it listens on port 3000. Go to http://localhost:3000.
+
+5. **Log In & Use**  
+   - At `/enter-pin`, enter either the purchase pin or the full pin.
+   - If purchase pin, you can only see “Purchase Prizes.” If full pin, you can manage everything.
+   - “Sign Out” or direct to `/logout` to exit your session.
+
+---
+
+## 11. Known Issues / Notes
+
+- All staff currently share the same 6-digit PIN(s). No per-staff accounts yet.
+- For production, consider HTTPS and a proper session store (Redis, etc.).
+- Pupils don’t have direct logins yet, though you can add a simple “pupil PIN” check if desired.
+- The site was tested primarily in a local or intranet environment; not hardened for public exposure.
+
+--------------------------------------------------------------------------------
+
