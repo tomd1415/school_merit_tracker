@@ -1,5 +1,4 @@
 // public/uploadMeritsCSV/uploadMeritsCSV.js
-
 document.addEventListener('DOMContentLoaded', () => {
   const uploadForm = document.getElementById('uploadForm');
   const csvFileInput = document.getElementById('csvFile');
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // We'll build a FormData to send the file
     const formData = new FormData();
     formData.append('csvFile', file);
 
@@ -34,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const result = await response.json(); 
-      // result should have something like { updatedCount: X, missing: [...] }
+      // e.g. { updatedCount: 3, missing: ["bob jones", "alice rogers"] }
 
       // Show success message:
       uploadMessage.style.color = 'green';

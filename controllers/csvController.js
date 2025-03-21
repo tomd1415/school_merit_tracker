@@ -11,6 +11,10 @@ exports.showUploadPupilCSVPage = (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'uploadCSV', 'uploadCSV.html'));
 };
 
+exports.showUploadMeritsCSVPage = (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'uploadMeritsCSV', 'uploadMeritsCSV.html'));
+};
+
 /**
  * Handle CSV file upload & parse. For each row:
  * 1) Check if pupil with same first_name & last_name already exists.
@@ -188,6 +192,82 @@ exports.uploadMeritsCSV = (req, res) => {
       res.json({
         updatedCount,
         missing,
+      });
+    })
+    .on('error', (err) => {
+      console.error('Error reading CSV:', err);
+      res.status(500).json({ error: 'Error reading CSV file.' });
+    });
+};
+
+// controllers/csvController.js
+
+exports.uploadMeritsCSV = (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No CSV file provided.' });
+  }
+
+  const rows = [];
+  const missing = [];
+  let updatedCount = 0;
+
+  fs.createReadStream(req.file.path)
+    .pipe(csv())
+    .on('data', (row) => {
+      rows.push(row);
+    })
+    .on('end', async () => {
+      // We now have the entire CSV in 'rows'
+      for (const row of rows) {
+        // Extract and validate
+        const first_name = (row.first_name || '').trim();
+        const last_name = (row.last_name || '').trim();
+        const meritsStr = (row.merits || '').trim();
+        const meritsToAdd = parseInt(meritsStr, 10);
+
+        if (!first_name || !last_name || isNaN(meritsToAdd)) {
+          // Skip invalid rows silently, or record them in 'missing' if you prefer
+          continue;
+        }
+
+        try {
+          // Check if pupil exists
+          const checkQuery = `
+            SELECT pupil_id
+            FROM pupils
+            WHERE LOWER(first_name) = LOWER($1)
+              AND LOWER(last_name) = LOWER($2)
+            LIMIT 1;
+          `;
+          const checkResult = await pool.query(checkQuery, [first_name, last_name]);
+
+          if (checkResult.rowCount === 0) {
+            // Pupil not found; record the name
+            missing.push(`${first_name} ${last_name}`);
+          } else {
+            // We found them, add to existing merits
+            const pupilId = checkResult.rows[0].pupil_id;
+            const updateQuery = `
+              UPDATE pupils
+              SET merits = merits + $1
+              WHERE pupil_id = $2;
+            `;
+            await pool.query(updateQuery, [meritsToAdd, pupilId]);
+            updatedCount++;
+          }
+        } catch (err) {
+          console.error('DB error updating merits:', err);
+          // continue on next row
+        }
+      }
+
+      // Remove temp file
+      fs.unlinkSync(req.file.path);
+
+      // Return JSON for the front-end
+      res.json({
+        updatedCount,
+        missing
       });
     })
     .on('error', (err) => {

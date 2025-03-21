@@ -17,6 +17,10 @@ router.get('/pupils', requireFullAccess, csvController.showUploadPupilCSVPage);
 // Handle CSV file upload
 router.post('/pupils', requireFullAccess, upload.single('csvFile'), csvController.uploadPupilCSV);
 
+// Merits CSV
+// 1) Show the upload form
+router.get('/merits', requireFullAccess, csvController.showUploadMeritsCSVPage);
+
 // Add a new route for "upload merits CSV"
 router.post('/merits', requireFullAccess, upload.single('csvFile'), csvController.uploadMeritsCSV);
 
