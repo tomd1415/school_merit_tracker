@@ -4,6 +4,7 @@ const router = express.Router();
 const path = require('path');
 const multer = require('multer');
 const prizeController = require('../controllers/prizeController');
+const { requireFullAccess } = require('../middlewares/auth');
 
 // Configure multer storage
 const storage = multer.diskStorage({
@@ -20,28 +21,28 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Show main Prizes page (HTML)
-router.get('/', prizeController.showPrizesPage);
+router.get('/', requireFullAccess, prizeController.showPrizesPage);
 
 // Return all Prizes as JSON
-router.get('/all/json', prizeController.getAllPrizes);
+router.get('/all/json', requireFullAccess, prizeController.getAllPrizes);
 
 // Show "Add Prize" page (HTML)
-router.get('/add', prizeController.showAddPrizeForm);
+router.get('/add', requireFullAccess, prizeController.showAddPrizeForm);
 
 // Handle "Add Prize" form submission with image upload
-router.post('/add', upload.single('image'), prizeController.addPrize);
+router.post('/add', requireFullAccess, upload.single('image'), prizeController.addPrize);
 
 // Show "Edit Prize" page (HTML)
-router.get('/edit/:id', prizeController.showEditPrizeForm);
+router.get('/edit/:id', requireFullAccess, prizeController.showEditPrizeForm);
 
 // Return single prize as JSON for the edit form
-router.get('/:id/json', prizeController.getPrizeById);
+router.get('/:id/json', requireFullAccess, prizeController.getPrizeById);
 
 // Handle "Edit Prize" form submission with optional image upload
-router.post('/edit/:id', upload.single('image'), prizeController.editPrize);
+router.post('/edit/:id', requireFullAccess, upload.single('image'), prizeController.editPrize);
 
 // Handle "Delete Prize"
-router.get('/delete/:id', prizeController.deletePrize);
+router.get('/delete/:id', requireFullAccess, prizeController.deletePrize);
 
 module.exports = router;
 

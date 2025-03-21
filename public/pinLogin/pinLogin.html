@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Enter PIN</title>
+  <link rel="stylesheet" href="/pinLogin/pinLogin.css">
+</head>
+<body>
+  <h1>Enter PIN</h1>
+  <div class="pin-container">
+    <div id="pinDisplay">••••••</div> <!-- placeholder for typed digits -->
+
+    <div class="keypad">
+      <!-- Each button calls a JavaScript function to add a digit or delete -->
+      <button class="digit-btn" data-digit="1">1</button>
+      <button class="digit-btn" data-digit="2">2</button>
+      <button class="digit-btn" data-digit="3">3</button>
+      <button class="digit-btn" data-digit="4">4</button>
+      <button class="digit-btn" data-digit="5">5</button>
+      <button class="digit-btn" data-digit="6">6</button>
+      <button class="digit-btn" data-digit="7">7</button>
+      <button class="digit-btn" data-digit="8">8</button>
+      <button class="digit-btn" data-digit="9">9</button>
+      <button class="digit-btn" data-digit="0">0</button>
+      <button id="backspaceBtn">Del</button>
+      <button id="submitPinBtn">OK</button>
+    </div>
+  </div>
+
+  <!-- Hidden form that gets submitted with the final PIN -->
+  <form id="pinForm" action="/check-pin" method="POST" style="display: none;">
+    <input type="hidden" id="pinInput" name="pin" value="">
+  </form>
+
+  <script src="/pinLogin/pinLogin.js"></script>
+</body>
+</html>
+
