@@ -34,3 +34,5 @@ temp/
 
 current_files.txt
 output.txt
+
+gather_files.py
