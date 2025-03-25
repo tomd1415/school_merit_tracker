@@ -163,12 +163,15 @@ exports.editPrize = async (req, res) => {
 exports.deletePrize = async (req, res) => {
   const { id } = req.params;
   try {
-    const deleteQuery = `DELETE FROM prizes WHERE prize_id = $1;`;
-    await pool.query(deleteQuery, [id]);
-    res.redirect('/prizes');
+    await pool.query(`
+      UPDATE prizes
+         SET active = false
+       WHERE prize_id = $1
+    `, [id]);
+    return res.json({ success: true });
   } catch (err) {
-    console.error('Error deleting prize:', err);
-    res.status(500).send('Failed to delete prize');
+    console.error('Error deleting prize (soft delete):', err);
+    return res.status(500).json({ error: 'Failed to delete prize' });
   }
 };
 
