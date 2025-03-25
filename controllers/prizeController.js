@@ -33,7 +33,7 @@ exports.getAllPrizes = async (req, res) => {
         ps.current_stock
       FROM prizes p
       LEFT JOIN prize_stock ps ON p.prize_id = ps.prize_id
-      ORDER BY p.prize_id
+      ORDER BY p.description
       `;
     const result = await pool.query(query);
     res.json(result.rows);
