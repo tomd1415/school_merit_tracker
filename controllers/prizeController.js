@@ -22,15 +22,19 @@ exports.getAllPrizes = async (req, res) => {
     // If you only want active ones, add "WHERE active = true"
     const query = `
       SELECT
-        prize_id,
-        description,
-        cost_merits,
-        cost_money,
-        image_path,
-        active
-      FROM prizes
-      ORDER BY prize_id;
-    `;
+        p.prize_id,
+        p.description,
+        p.cost_merits,
+        p.cost_money,
+        p.image_path,
+        p.active,
+        p.total_stocked_ever,
+        p.stock_adjustment,
+        ps.current_stock
+      FROM prizes p
+      LEFT JOIN prize_stock ps ON p.prize_id = ps.prize_id
+      ORDER BY p.prize_id
+      `;
     const result = await pool.query(query);
     res.json(result.rows);
   } catch (err) {
@@ -53,11 +57,13 @@ exports.showAddPrizeForm = (req, res) => {
  */
 exports.addPrize = async (req, res) => {
   try {
-    // Expect these from the form
-    const { description, cost_merits, cost_money, image_path } = req.body;
+    const { description, cost_merits, cost_money } = req.body;
+    if (!req.file) {
+      // Return an error in JSON
+      return res.status(400).json({ error: 'Image upload required' });
+    }
+    const image_path = '/images/' + req.file.filename;
 
-    // Insert into the prizes table
-    // We'll default total_stocked_ever=0, stock_adjustment=0, active=true
     const insertQuery = `
       INSERT INTO prizes 
         (description, cost_merits, cost_money, image_path, total_stocked_ever, stock_adjustment, active)
@@ -66,11 +72,12 @@ exports.addPrize = async (req, res) => {
     `;
     await pool.query(insertQuery, [description, cost_merits, cost_money, image_path]);
 
-    // Redirect to the main prizes list or wherever you like
-    res.redirect('/prizes');
+    // Return a JSON success response. The front-end checks "response.ok"
+    // and won't attempt to parse a redirect as JSON
+    return res.json({ success: true });
   } catch (err) {
     console.error('Error adding prize:', err);
-    res.status(500).send('Failed to add prize');
+    return res.status(500).json({ error: 'Failed to add prize' });
   }
 };
 
@@ -117,7 +124,7 @@ exports.getPrizeById = async (req, res) => {
 /**
  * Handle "Edit Prize" form submission.
  * Update the record in the DB.
- */
+ *
 exports.editPrize = async (req, res) => {
   const { id } = req.params;
   const { description, cost_merits, cost_money, image_path, active } = req.body;
@@ -147,7 +154,7 @@ exports.editPrize = async (req, res) => {
     res.status(500).send('Failed to edit prize');
   }
 };
-
+*/
 /**
  * Delete a prize.
  * This example does a real DELETE. 
@@ -165,7 +172,7 @@ exports.deletePrize = async (req, res) => {
   }
 };
 
-exports.addPrize = async (req, res) => {
+/*exports.addPrize = async (req, res) => {
   try {
     const { description, cost_merits, cost_money } = req.body;
     // Ensure a file was uploaded
@@ -191,45 +198,106 @@ exports.addPrize = async (req, res) => {
     res.status(500).send('Failed to add prize');
   }
 };
-
+*/
 /**
  * Handle "Edit Prize" form submission.
  */
 exports.editPrize = async (req, res) => {
   const { id } = req.params;
-  let { description, cost_merits, cost_money, active } = req.body;
-  // Set image_path to the original path unless a new image is uploaded
-  let image_path = req.body.image_path || '';
+  let { total_stocked_ever, description, cost_merits, cost_money, active } = req.body;
 
-  // If a new file was uploaded, update image_path accordingly
+  // We still handle image
+  let image_path = req.body.image_path || '';
   if (req.file) {
     image_path = '/images/' + req.file.filename;
   }
 
+  // 1) If total_stocked_ever is provided, parse it and update
+  if (typeof total_stocked_ever !== 'undefined') {
+    const newTSE = parseInt(total_stocked_ever, 10);
+    if (isNaN(newTSE)) {
+      return res.status(400).json({ error: 'total_stocked_ever must be an integer' });
+    }
+    await pool.query(`
+      UPDATE prizes
+         SET total_stocked_ever = $1
+       WHERE prize_id = $2
+    `, [newTSE, id]);
+  }
+
+  // 2) For the rest, if a field is omitted, we could keep its old value
+  //    or treat an undefined as "no change." Let's do "no change" by
+  //    reading the existing row from DB first:
+  const prizeResult = await pool.query('SELECT * FROM prizes WHERE prize_id = $1', [id]);
+  if (prizeResult.rowCount === 0) {
+    return res.status(404).json({ error: 'Prize not found' });
+  }
+  const existing = prizeResult.rows[0];
+
+  // If user didn't provide cost_merits, fall back to existing
+  if (typeof cost_merits === 'undefined') cost_merits = existing.cost_merits;
+  // If user didn't provide cost_money, fall back to existing
+  if (typeof cost_money === 'undefined') cost_money = existing.cost_money;
+  // If user didn’t provide active, fall back to existing
+  if (typeof active === 'undefined') active = existing.active;
+  // If user didn’t provide description, fallback
+  if (typeof description === 'undefined') description = existing.description;
+  // If user didn’t provide image_path in body or file, fallback
+  if (!req.file && !req.body.image_path) image_path = existing.image_path;
+
+  // 3) Now do the final update for all these fields
   try {
     const updateQuery = `
       UPDATE prizes
-      SET
-        description = $1,
-        cost_merits = $2,
-        cost_money = $3,
-        image_path = $4,
-        active = $5
-      WHERE prize_id = $6;
+         SET description  = $1,
+             cost_merits  = $2,
+             cost_money   = $3,
+             image_path   = $4,
+             active       = $5
+       WHERE prize_id = $6
     `;
     await pool.query(updateQuery, [
       description,
       cost_merits,
       cost_money,
       image_path,
-      active === 'true' || active === true,
+      (active === 'true' || active === true),
       id
     ]);
+if (typeof req.body.stock_adjustment !== 'undefined') {
+  const userValue = parseInt(req.body.stock_adjustment, 10); 
+  if (isNaN(userValue)) {
+    return res.status(400).json({ error: "stock_adjustment must be an integer" });
+  }
 
-    res.redirect('/prizes');
+  // 1) get the old value from the DB
+  const oldResult = await pool.query(`
+    SELECT stock_adjustment
+      FROM prizes
+     WHERE prize_id = $1
+  `, [id]);
+  if (oldResult.rowCount === 0) {
+    return res.status(404).json({ error: 'Prize not found' });
+  }
+  const oldAdjustment = oldResult.rows[0].stock_adjustment;
+
+  // 2) compute the new value
+  const newAdjustment = oldAdjustment + userValue;
+
+  // 3) update in DB
+  await pool.query(`
+    UPDATE prizes
+       SET stock_adjustment = $1
+     WHERE prize_id = $2
+  `, [newAdjustment, id]);
+}
+    // If it's an inline update, you might respond with JSON.
+    // If it's a form submission, you might redirect. 
+    // Just be consistent with your front-end approach:
+    return res.json({ success: true });
   } catch (err) {
     console.error('Error editing prize:', err);
-    res.status(500).send('Failed to edit prize');
+    return res.status(500).json({ error: 'Failed to edit prize' });
   }
 };
 

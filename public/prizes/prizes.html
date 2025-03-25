@@ -13,7 +13,12 @@
 
   <main>
     <div class="button-bar">
+      <!-- "Add New Prize" opens the Add Prize modal -->
       <button id="addPrizeBtn">Add New Prize</button>
+
+      <!-- Toggle for inline editing, same as Pupils page -->
+      <label for="inlineEditToggle">Allow Inline Edit:</label>
+      <input type="checkbox" id="inlineEditToggle" />
     </div>
 
     <table id="prizeTable">
@@ -23,6 +28,10 @@
           <th>Description</th>
           <th>Merit Cost</th>
           <th>Money Cost</th>
+          <!-- New columns for stock logic: -->
+          <th>Total Stocked Ever</th>
+          <th>Stock Adjustment</th>
+          <th>Current Stock</th>
           <th>Image</th>
           <th>Active</th>
           <th>Actions</th>
@@ -101,6 +110,7 @@
     </div>
   </div>
 
+  <!-- Script references -->
   <script src="prizes.js"></script>
   <script src="/commonMenu.js"></script>
 </body>
