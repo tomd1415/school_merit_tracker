@@ -66,7 +66,7 @@ async function loadPrizes() {
       // Build columns (ensure your prizes.html has matching <th>!)
       // We'll store data in 'data-field' attributes for inline editing
       row.innerHTML = `
-        <td>${prize.prize_id}</td>
+        <!-- <td>${prize.prize_id}</td> -->
         <td data-field="description">${prize.description}</td>
         <td data-field="cost_merits">${prize.cost_merits}</td>
         <td data-field="cost_money">${prize.cost_money}</td>
@@ -230,7 +230,7 @@ async function openEditPrizeModal(prizeId) {
     if (!res.ok) throw new Error('Failed to fetch prize details');
     const prize = await res.json();
 
-    document.getElementById('editPrizeId').value = prize.prize_id;
+    //document.getElementById('editPrizeId').value = prize.prize_id;
     document.getElementById('editPrizeDescription').value = prize.description;
     document.getElementById('editPrizeCostMerits').value = prize.cost_merits;
     document.getElementById('editPrizeCostMoney').value = prize.cost_money;
