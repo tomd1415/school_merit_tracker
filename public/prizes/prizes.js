@@ -1,7 +1,7 @@
 // public/prizes/prizes.js
 
 let inlineEditEnabled = false;      // Track whether inline editing is on/off
-let allPrizes = [];                // We’ll store the fetched prizes here
+let allPrizes = [];                // We'll store the fetched prizes here
 
 window.addEventListener('DOMContentLoaded', () => {
   // 1) Setup the inline-edit toggle
@@ -42,7 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // 6) Handle "Edit Prize" form submission
   document.getElementById('editPrizeForm').addEventListener('submit', editPrizeFormHandler);
 
-  // 7) Delegate table clicks for “Edit” / “Delete” buttons
+  // 7) Delegate table clicks for "Edit" / "Delete" buttons
   document.querySelector('#prizeTable tbody').addEventListener('click', tableButtonHandler);
 });
 
@@ -103,15 +103,124 @@ function applyInlineEditing() {
       if (inlineEditEnabled) {
         // Make it contentEditable (except image changes might need special handling)
         cell.classList.add('editable');
-        cell.contentEditable = true;
-        cell.addEventListener('blur', handleInlineEditBlur);
+        
+        // For image cells, we'll set up drag-and-drop instead of contentEditable
+        if (cell.getAttribute('data-field') === 'image_path') {
+          cell.contentEditable = false;
+          
+          // Add visual cue that images can be replaced
+          const img = cell.querySelector('img');
+          if (img) {
+            img.classList.add('droppable-image');
+            
+            // Add drag event listeners to the cell
+            cell.addEventListener('dragover', handleImageDragOver);
+            cell.addEventListener('dragleave', handleImageDragLeave);
+            cell.addEventListener('drop', handleImageDrop);
+            
+            // Add a hint that images can be dropped here
+            img.title = "Drag a new image here to replace";
+          }
+        } else {
+          cell.contentEditable = true;
+          cell.addEventListener('blur', handleInlineEditBlur);
+        }
       } else {
         cell.classList.remove('editable');
         cell.contentEditable = false;
         cell.removeEventListener('blur', handleInlineEditBlur);
+        
+        // Remove drag-and-drop for images
+        if (cell.getAttribute('data-field') === 'image_path') {
+          const img = cell.querySelector('img');
+          if (img) {
+            img.classList.remove('droppable-image');
+            cell.removeEventListener('dragover', handleImageDragOver);
+            cell.removeEventListener('dragleave', handleImageDragLeave);
+            cell.removeEventListener('drop', handleImageDrop);
+            img.title = "";
+          }
+        }
       }
     });
   });
+}
+
+/**
+ * Prevent default during dragover to allow drop
+ */
+function handleImageDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  this.classList.add('drag-over');
+}
+
+/**
+ * Remove the drag-over class when leaving
+ */
+function handleImageDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  this.classList.remove('drag-over');
+}
+
+/**
+ * Handle image drop - upload the file and update the prize
+ */
+async function handleImageDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  this.classList.remove('drag-over');
+  
+  // Get the prize ID from the row
+  const row = this.closest('tr');
+  const prizeId = row.getAttribute('data-prize-id');
+  
+  // Check if files were dropped
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    const fileDropped = e.dataTransfer.files[0];
+    
+    // Validate it's an image
+    if (!fileDropped.type.match('image.*')) {
+      alert('Only image files are allowed!');
+      return;
+    }
+    
+    try {
+      // Create FormData and append the file
+      const formData = new FormData();
+      formData.append('image', fileDropped);
+      
+      // Show loading state
+      const img = this.querySelector('img');
+      const originalSrc = img.src;
+      img.style.opacity = '0.5';
+      
+      // Upload the image
+      const response = await fetch(`/prizes/edit/${prizeId}`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (response.ok) {
+        // Refresh the prizes to show the updated image
+        await loadPrizes();
+      } else {
+        // Show error and revert the image
+        const result = await response.json();
+        alert(result.error || 'Error updating image');
+        img.style.opacity = '1';
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+      
+      // Revert the image state
+      const img = this.querySelector('img');
+      img.style.opacity = '1';
+    }
+  }
 }
 
 /**
@@ -131,10 +240,10 @@ async function handleInlineEditBlur(e) {
   if (['cost_merits', 'cost_money', 'total_stocked_ever', 'stock_adjustment'].includes(field)) {
     parsedValue = parseInt(newValue, 10) || 0;
   } else if (field === 'active') {
-    // If user typed “true” or “false”
+    // If user typed "true" or "false"
     parsedValue = (newValue.toLowerCase() === 'true');
   }
-  // For image_path or description, we’ll just use the string
+  // For image_path or description, we'll just use the string
 
   // Prepare the payload (only the one field changed)
   const payload = { [field]: parsedValue };
@@ -230,7 +339,7 @@ async function openEditPrizeModal(prizeId) {
     if (!res.ok) throw new Error('Failed to fetch prize details');
     const prize = await res.json();
 
-    //document.getElementById('editPrizeId').value = prize.prize_id;
+    document.getElementById('editPrizeId').value = prize.prize_id;
     document.getElementById('editPrizeDescription').value = prize.description;
     document.getElementById('editPrizeCostMerits').value = prize.cost_merits;
     document.getElementById('editPrizeCostMoney').value = prize.cost_money;
@@ -251,7 +360,13 @@ async function editPrizeFormHandler(e) {
   const feedback = document.getElementById('editPrizeFeedback');
   feedback.textContent = '';
 
+  // Find the prizeId from the modal or from a data attribute
   const prizeId = document.getElementById('editPrizeId').value;
+  if (!prizeId) {
+    feedback.textContent = 'Prize ID is missing. Please try again.';
+    return;
+  }
+
   const description = document.getElementById('editPrizeDescription').value.trim();
   const cost_merits = document.getElementById('editPrizeCostMerits').value;
   const cost_money = document.getElementById('editPrizeCostMoney').value;

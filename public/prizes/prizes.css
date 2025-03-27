@@ -96,3 +96,25 @@ table td button {
   font-size: 24px;
   cursor: pointer;
 }
+
+/* Add styles for drag-and-drop functionality */
+.droppable-image {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.droppable-image:hover {
+  opacity: 0.8;
+}
+
+[data-field="image_path"].drag-over {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 2px dashed #007bff;
+  padding: 5px;
+}
+
+/* Make sure table cells with images have proper padding */
+[data-field="image_path"] {
+  padding: 5px;
+  transition: all 0.3s;
+}
