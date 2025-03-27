@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Purchase Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Prizes</title>
   <link rel="stylesheet" href="purchase.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
@@ -13,68 +14,46 @@
   <header>
     <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
     <h1>Purchase Prizes</h1>
+    <button id="signOutBtn">Sign Out</button>
   </header>
 
   <main>
-    <h2 class="page-subtitle">Tap on a prize to begin purchase</h2>
+    <h2 class="page-subtitle">Select a prize to purchase</h2>
     <div id="prizeContainer">
       <!-- JavaScript will populate with available prizes -->
     </div>
   </main>
 
-  <!-- Existing Modal for selecting pupil -->
+  <!-- Pupil Selection Modal -->
   <div id="pupilModal" class="modal">
     <div class="modal-content">
       <span id="closeModal" class="close">&times;</span>
       <h2>Select Pupil</h2>
-      <input type="text" id="pupilSearch" placeholder="Type pupil name..." />
-      <div id="searchResults"></div>
+      <input type="text" id="pupilSearch" placeholder="Search pupil by name..." />
+      <div id="searchResults">
+        <!-- Will be populated by JavaScript -->
+      </div>
       <h3>Recently Selected Pupils</h3>
-      <div id="recentPupils"></div>
+      <div id="recentPupils">
+        <!-- Will be populated by JavaScript -->
+      </div>
     </div>
   </div>
 
-  <!-- New Modal for purchase confirmation -->
-<div id="confirmationModal" class="modal">
-  <div class="modal-content">
-    <span id="closeConfirmation" class="close">&times;</span>
-    <h2>Purchase Confirmed</h2>
-    <p id="confirmationMessage"></p>
-    <button id="confirmationOkBtn">OK</button>
-    <button id="cancelPurchaseBtn">Cancel Purchase</button>
+  <!-- Purchase Confirmation Modal -->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content">
+      <span id="closeConfirmation" class="close">&times;</span>
+      <h2>Purchase Confirmed</h2>
+      <p id="confirmationMessage"></p>
+      <div class="modal-buttons">
+        <button id="confirmationOkBtn">OK</button>
+        <button id="cancelPurchaseBtn">Cancel Purchase</button>
+      </div>
+    </div>
   </div>
-</div>
 
   <script src="purchase.js"></script>
-    <script>
-  // Immediately after the DOM is loaded, create a button 
-  // in the top-right corner of the header or body:
-  document.addEventListener('DOMContentLoaded', () => {
-    const header = document.querySelector('header');
-    if (header) {
-      const signOutBtn = document.createElement('button');
-      signOutBtn.textContent = 'Sign Out';
-      Object.assign(signOutBtn.style, {
-        position: 'absolute',
-        right: '20px',
-        top: '10px',
-        backgroundColor: '#005a98',
-        border: 'none',
-        color: '#ffffff',
-        padding: '8px 16px',
-        cursor: 'pointer',
-        borderRadius: '4px'
-      });
-      signOutBtn.addEventListener('click', () => {
-        window.location.href = '/logout';
-      });
-      // Positioning: might need a "position: relative" on the header
-      header.style.position = 'relative';
-      header.appendChild(signOutBtn);
-    }
-  });
-</script>
-
 </body>
 </html>
 

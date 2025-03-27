@@ -1,6 +1,29 @@
 /* public/purchase/purchase.css */
 
-/* RESET / BASE STYLES */
+/* Base styles and variables */
+:root {
+  --primary: #003a69;
+  --primary-light: #005a98;
+  --primary-dark: #002e54;
+  --secondary: #17a2b8;
+  --danger: #dc3545;
+  --success: #28a745;
+  --light: #f8f9fa;
+  --gray: #6c757d;
+  --gray-light: #ced4da;
+  --dark: #343a40;
+  --white: #ffffff;
+  --border-radius: 6px;
+  --border-radius-lg: 12px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 5px 15px rgba(0, 0, 0, 0.15);
+  --transition: all 0.25s ease;
+}
+
+/* Base typography */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,93 +31,134 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: #9cb3d9;
-  color: #333;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--light);
+  color: var(--dark);
+  line-height: 1.5;
+  font-size: 16px;
 }
 
-/* HEADER */
+/* Header styling */
 header {
   display: flex;
   align-items: center;
-  background-color: #003a69; /* School's dark blue */
-  color: #ffffff;
-  padding: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* subtle modern shadow */
+  background: linear-gradient(to right, var(--primary-dark), var(--primary));
+  color: var(--white);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow);
+  position: relative;
 }
 
 .exhall-logo {
-  height: 50px;
-  margin-right: 20px;
+  height: 60px;
+  margin-right: var(--spacing-lg);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 header h1 {
-  font-size: 1.6rem;
   margin: 0;
+  font-weight: 600;
+  font-size: 1.8rem;
+  letter-spacing: 0.5px;
 }
 
-/* MAIN CONTENT */
+/* Sign Out Button */
+#signOutBtn {
+  position: absolute;
+  right: 20px;
+  padding: 10px 18px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+#signOutBtn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Main content area */
 main {
-  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
 }
 
 .page-subtitle {
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-}
-
-/* PRIZE CONTAINER + CARDS */
-#prizeContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: flex-start;
-}
-
-/* Example card style for each prize */
-.prize-card {
-  width: 160px;
-  background-color: #ccf;
-  border: 5px solid #666;
-  border-radius: 30px;
-  border-style: outset;
-  cursor: pointer;
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.4rem;
+  color: var(--primary);
+  font-weight: 500;
   text-align: center;
-  padding: 10px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
 }
 
-.prize-card:active {
-  border-style: inset;
-  background-color: #aad
+/* Prize container grid layout */
+#prizeContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--spacing-lg);
+  justify-content: center;
+}
+
+/* Prize card styling */
+.prize-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  padding-bottom: var(--spacing-md);
 }
 
 .prize-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.prize-card:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .prize-card img {
   width: 100%;
-  height: auto;
-  border-radius: 40px;
-  border: 4px solid #66a;
-  border-style: inset;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.prize-card-content {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .prize-card h3 {
-  margin: 10px 0 5px 0;
-  font-size: 1rem;
-  color: #333;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 1.1rem;
+  color: var(--primary);
+  line-height: 1.3;
 }
 
 .prize-card p {
-  margin: 5px 0;
-  font-size: 0.9rem;
-  color: #555;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-dark);
 }
 
-/* MODAL OVERLAY */
+/* Modal Styling */
 .modal {
   display: none;
   position: fixed;
@@ -103,137 +167,248 @@ main {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5); /* darker overlay for clarity */
-  /* You can optionally add a fade-in transition if you switch display via a class: 
-     transition: opacity 0.3s ease; 
-     opacity: 0; 
-     &.active { display: block; opacity: 1; } 
-     (But that also requires JS changes.) */
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  overflow-y: auto;
 }
 
-/* MODAL CONTENT */
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
 .modal-content {
-  background-color: #ffffff;
-  margin: 70px auto;
-  padding: 20px;
+  background-color: var(--white);
+  margin: auto;
+  padding: var(--spacing-lg);
   width: 90%;
   max-width: 500px;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
   position: relative;
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0);
 }
 
 .modal-content h2 {
   margin-top: 0;
-  font-size: 1.3rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: var(--spacing-sm);
+  font-size: 1.5rem;
 }
 
-/* CLOSE BUTTON */
 .close {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
   font-size: 1.5rem;
+  color: var(--gray);
   cursor: pointer;
-  color: #555;
+  transition: var(--transition);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
-/* PUPIL SEARCH / RESULTS */
+.close:hover {
+  color: var(--dark);
+  background-color: var(--gray-light);
+}
+
+/* Pupil search styling */
 #pupilSearch {
   width: 100%;
-  padding: 10px;
-  margin: 10px 0 15px 0;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px 15px;
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: 1.1rem;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
 }
 
-#searchResults div,
-#recentPupils div {
-  padding: 8px;
-  border: 1px solid #ccc;
-  margin-bottom: 6px;
-  border-radius: 4px;
+#pupilSearch:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 58, 105, 0.2);
+}
+
+/* Search results and recent pupils */
+#searchResults, #recentPupils {
+  margin-bottom: var(--spacing-lg);
+}
+
+#searchResults h3, #recentPupils h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--primary);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.pupil-item {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  background-color: var(--light);
   cursor: pointer;
-  font-size: 0.95rem;
+  transition: var(--transition);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-#searchResults div:hover,
-#recentPupils div:hover {
-  background-color: #f0f0f0;
+.pupil-item:hover {
+  background-color: rgba(0, 58, 105, 0.05);
 }
 
-/* HEADINGS INSIDE THE MODAL */
-#searchResults h3,
-#recentPupils h3 {
-  margin-top: 20px;
-  margin-bottom: 10px;
+.pupil-item:active {
+  background-color: rgba(0, 58, 105, 0.1);
+}
+
+.pupil-name {
+  font-weight: 500;
   font-size: 1.1rem;
 }
-/* Optional: Adjust confirmation modal styles specifically */
+
+.pupil-merits {
+  font-weight: 600;
+  color: var(--primary);
+  padding: 4px 10px;
+  background-color: rgba(0, 58, 105, 0.1);
+  border-radius: 20px;
+}
+
+/* Confirmation modal styling */
 #confirmationModal .modal-content {
-  /* For example, different background color */
-  /* background-color: #eef; */
-}
-/* 
-  purchase.css 
-  (Below the existing .modal, .modal-content, etc.)
-*/
-
-/* Make the confirmation modal's heading and message stand out */
-#confirmationModal .modal-content h2 {
-  margin-top: 0;
-  font-size: 1.4rem;
-  margin-bottom: 10px;
+  text-align: center;
 }
 
-#confirmationModal .modal-content p {
-  line-height: 1.4;
-  margin-bottom: 20px;
-}
-
-/* 
-  Use a .highlight utility class to emphasize 
-  the pupil’s name and purchased item 
-*/
-.highlight {
-  font-weight: bold;
-  color: #003a69; /* your school’s dark blue, for instance */
+#confirmationMessage {
   font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
 }
 
-/* 
-  Example styling for the buttons in the confirmation modal.
-  Adjust margins, padding, colors, etc. as needed.
-*/
-#confirmationModal button {
-  margin-right: 10px;
-  padding: 8px 16px;
-  cursor: pointer;
+.highlight {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+}
+
+#confirmationOkBtn, #cancelPurchaseBtn {
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 500;
   border: none;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 #confirmationOkBtn {
-  background-color: #003a69; 
-  color: #ffffff;
+  background-color: var(--primary);
+  color: var(--white);
 }
 
 #confirmationOkBtn:hover {
-  background-color: #005a98;
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 
-  “Cancel Purchase” button might be red 
-  (only relevant if you implement a true “undo”/”void”).
-*/
 #cancelPurchaseBtn {
-  background-color: #cc0000; 
-  color: #ffffff;
+  background-color: var(--danger);
+  color: var(--white);
 }
 
 #cancelPurchaseBtn:hover {
-  background-color: #e60000;
+  background-color: var(--danger-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--spacing-md);
+  }
+  
+  .exhall-logo {
+    margin-right: 0;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  #signOutBtn {
+    position: static;
+    margin-top: var(--spacing-md);
+  }
+  
+  main {
+    padding: var(--spacing-md);
+  }
+  
+  .page-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  #prizeContainer {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--spacing-md);
+  }
+  
+  .modal-content {
+    width: 95%;
+    padding: var(--spacing-md);
+  }
+  
+  .modal-buttons {
+    flex-direction: column;
+  }
+  
+  #confirmationOkBtn, #cancelPurchaseBtn {
+    width: 100%;
+  }
+}
+
+/* Animation for card loading */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.prize-card {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.prize-card:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.prize-card:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.prize-card:nth-child(4n) {
+  animation-delay: 0.3s;
 }
 

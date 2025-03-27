@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pupil Management</title>
   <link rel="stylesheet" href="pupils.css" />
 </head>
@@ -13,118 +14,127 @@
   
   <main>
     <div class="button-bar">
-      <!-- NEW: Add Pupil button that opens the "Add Pupil" modal -->
-      <button id="addPupilBtn">Add Pupil</button>
-      <!-- NEW: Add Form button that opens the "Add Form" modal -->
-      <button id="addFormBtn">Add Form</button>
-
-      <label for="formFilter">Filter by Form:</label>
-      <select id="formFilter">
-        <option value="">All</option>
-      </select>
+      <div class="button-group">
+        <button id="addPupilBtn" class="primary-btn">Add Pupil</button>
+        <button id="addFormBtn">Add Form</button>
+      </div>
       
-      <label for="inlineEditToggle">Allow Inline Edit:</label>
-      <input type="checkbox" id="inlineEditToggle" />
+      <div class="filter-group">
+        <label for="formFilter">Filter by Form:</label>
+        <select id="formFilter">
+          <option value="">All</option>
+        </select>
+      </div>
+      
+      <div class="toggle-group">
+        <label for="inlineEditToggle">Allow Inline Edit:</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="inlineEditToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
     </div>
     
-    <table id="pupilTable">
-      <thead>
-        <tr>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Form Group</th>
-          <th>Merits</th>
-          <th>Remaining Merits</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody><!-- Pupils inserted dynamically --></tbody>
-    </table>
+    <div class="table-container">
+      <table id="pupilTable">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Form Group</th>
+            <th>Merits</th>
+            <th>Remaining Merits</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody><!-- Pupils inserted dynamically --></tbody>
+      </table>
+    </div>
   </main>
   
-  <!-- Existing Edit Modal (unchanged) -->
+  <!-- Edit Modal -->
   <div id="editModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
       <h2>Edit Pupil</h2>
       <form id="editPupilForm">
         <input type="hidden" id="editPupilId" />
-        <div>
-          <label>First Name:</label>
+        <div class="form-group">
+          <label for="editFirstName">First Name:</label>
           <input type="text" id="editFirstName" required />
         </div>
-        <div>
-          <label>Last Name:</label>
+        <div class="form-group">
+          <label for="editLastName">Last Name:</label>
           <input type="text" id="editLastName" required />
         </div>
-        <div>
-          <label>Form:</label>
+        <div class="form-group">
+          <label for="editFormSelect">Form:</label>
           <select id="editFormSelect" required></select>
         </div>
-        <div>
-          <label>Merits:</label>
+        <div class="form-group">
+          <label for="editMerits">Merits:</label>
           <input type="number" id="editMerits" min="0" required />
         </div>
-        <div id="editModalFeedback" class="feedback" style="color:red;"></div>
-        <div>
-          <button type="submit">Save</button>
-          <button type="button" id="cancelEditBtn">Cancel</button>
+        <div id="editModalFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Save Changes</button>
+          <button type="button" id="cancelEditBtn" class="cancel-btn">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- NEW: Add Pupil Modal -->
+  <!-- Add Pupil Modal -->
   <div id="addPupilModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn" id="closeAddPupilModal">&times;</span>
       <h2>Add New Pupil</h2>
       <form id="addPupilForm">
-        <div>
-          <label>First Name:</label>
+        <div class="form-group">
+          <label for="addPupilFirstName">First Name:</label>
           <input type="text" id="addPupilFirstName" required />
         </div>
-        <div>
-          <label>Last Name:</label>
+        <div class="form-group">
+          <label for="addPupilLastName">Last Name:</label>
           <input type="text" id="addPupilLastName" required />
         </div>
-        <div>
-          <label>Form:</label>
+        <div class="form-group">
+          <label for="addPupilFormSelect">Form:</label>
           <select id="addPupilFormSelect" required>
             <!-- Populated by JavaScript from formsData -->
           </select>
         </div>
-        <div id="addPupilFeedback" class="feedback" style="color:red;"></div>
-        <div>
-          <button type="submit">Add Pupil</button>
-          <button type="button" id="cancelAddPupilBtn">Cancel</button>
+        <div id="addPupilFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Add Pupil</button>
+          <button type="button" id="cancelAddPupilBtn" class="cancel-btn">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- NEW: Add Form Modal -->
+  <!-- Add Form Modal -->
   <div id="addFormModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn" id="closeAddFormModal">&times;</span>
       <h2>Add New Form</h2>
       <form id="addFormForm">
-        <div>
-          <label>Form Name:</label>
+        <div class="form-group">
+          <label for="addFormName">Form Name:</label>
           <input type="text" id="addFormName" required />
         </div>
-        <div>
-          <label>Form Tutor:</label>
+        <div class="form-group">
+          <label for="addFormTutor">Form Tutor:</label>
           <input type="text" id="addFormTutor" />
         </div>
-        <div>
-          <label>Year Group:</label>
+        <div class="form-group">
+          <label for="addFormYearGroup">Year Group:</label>
           <input type="text" id="addFormYearGroup" />
         </div>
-        <div id="addFormFeedback" class="feedback" style="color:red;"></div>
-        <div>
-          <button type="submit">Add Form</button>
-          <button type="button" id="cancelAddFormBtn">Cancel</button>
+        <div id="addFormFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Add Form</button>
+          <button type="button" id="cancelAddFormBtn" class="cancel-btn">Cancel</button>
         </div>
       </form>
     </div>

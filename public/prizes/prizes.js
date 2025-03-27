@@ -44,6 +44,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 7) Delegate table clicks for "Edit" / "Delete" buttons
   document.querySelector('#prizeTable tbody').addEventListener('click', tableButtonHandler);
+  
+  // 8) Setup stock info modal
+  document.getElementById('closeStockInfoModal').addEventListener('click', () => {
+    document.getElementById('stockInfoModal').style.display = 'none';
+  });
+  document.getElementById('closeStockInfoButton').addEventListener('click', () => {
+    document.getElementById('stockInfoModal').style.display = 'none';
+  });
+  
+  // 9) Add help icon to the stock adjustment header
+  addStockHelpIcon();
 });
 
 /**
@@ -121,7 +132,35 @@ function applyInlineEditing() {
             // Add a hint that images can be dropped here
             img.title = "Drag a new image here to replace";
           }
-        } else {
+        } 
+        // Special handling for stock_adjustment
+        else if (cell.getAttribute('data-field') === 'stock_adjustment') {
+          cell.contentEditable = false;
+          
+          // Create a special input UI for stock adjustment
+          const currentValue = parseInt(cell.textContent.trim(), 10) || 0;
+          
+          // Replace the cell content with a more compact form for spoiled stock
+          cell.innerHTML = `
+            <div class="stock-adjustment-compact">
+              <span class="current-value">${currentValue}</span>
+              <input type="number" min="0" class="spoiled-input" placeholder="#" title="Enter number of spoiled/lost items">
+              <button class="record-spoiled-btn">+</button>
+              <div class="tooltip">
+                <span class="tooltip-icon">ⓘ</span>
+                <span class="tooltip-text">
+                  Enter a positive number to record lost/spoiled items. 
+                  The system will automatically subtract them from your stock.
+                </span>
+              </div>
+            </div>
+          `;
+          
+          // Add event listener to the button
+          const recordBtn = cell.querySelector('.record-spoiled-btn');
+          recordBtn.addEventListener('click', () => handleSpoiledStockRecord(row.getAttribute('data-prize-id'), cell));
+        }
+        else {
           cell.contentEditable = true;
           cell.addEventListener('blur', handleInlineEditBlur);
         }
@@ -140,6 +179,18 @@ function applyInlineEditing() {
             cell.removeEventListener('drop', handleImageDrop);
             img.title = "";
           }
+        }
+        
+        // Reset stock adjustment cell to just show the value
+        else if (cell.getAttribute('data-field') === 'stock_adjustment') {
+          // Get the current adjustment value from the span if it exists
+          let currentValue = cell.textContent.trim();
+          if (cell.querySelector('.current-value')) {
+            currentValue = cell.querySelector('.current-value').textContent.trim();
+          }
+          
+          // Reset to just the value
+          cell.innerHTML = currentValue;
         }
       }
     });
@@ -408,6 +459,90 @@ async function deletePrize(prizeId) {
     // The calling code re-loads the table
   } catch (error) {
     console.error('Error deleting prize:', error);
+  }
+}
+
+/**
+ * Handle recording spoiled/lost stock
+ */
+async function handleSpoiledStockRecord(prizeId, cell) {
+  const input = cell.querySelector('.spoiled-input');
+  const spoiledCount = parseInt(input.value, 10);
+  
+  if (isNaN(spoiledCount) || spoiledCount < 0) {
+    alert('Please enter a valid number of spoiled items (0 or positive number)');
+    return;
+  }
+  
+  try {
+    // Show loading state
+    const currentValueSpan = cell.querySelector('.current-value');
+    if (currentValueSpan) {
+      currentValueSpan.style.opacity = '0.5';
+    }
+    input.disabled = true;
+    
+    // Record the spoiled stock (sending a NEGATIVE number since spoiled items reduce stock)
+    const resp = await fetch(`/prizes/edit/${prizeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        stock_adjustment: -spoiledCount // Negative number to reduce stock
+      })
+    });
+    
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      console.error('Update error:', errData.error || 'Unknown error');
+      alert('Error recording spoiled stock: ' + (errData.error || 'Unknown'));
+      
+      // Reset loading state
+      if (currentValueSpan) {
+        currentValueSpan.style.opacity = '1';
+      }
+      input.disabled = false;
+    } else {
+      // Clear the input
+      input.value = '';
+      // Re-load to show updated stock
+      await loadPrizes();
+    }
+  } catch (err) {
+    console.error('Failed to record spoiled stock:', err);
+    alert('Failed to record spoiled stock');
+    
+    // Reset loading state
+    const currentValueSpan = cell.querySelector('.current-value');
+    if (currentValueSpan) {
+      currentValueSpan.style.opacity = '1';
+    }
+    input.disabled = false;
+  }
+}
+
+/**
+ * Add a help icon to the stock adjustment header for more information
+ */
+function addStockHelpIcon() {
+  // Find the stock adjustment column header (now "Lost/Spoiled Items")
+  const stockHeader = Array.from(document.querySelectorAll('#prizeTable th')).find(
+    th => th.textContent.trim() === 'Lost/Spoiled Items'
+  );
+  
+  if (stockHeader) {
+    // Create the help icon
+    const helpIcon = document.createElement('span');
+    helpIcon.innerHTML = ' <i class="help-icon">?</i>';
+    helpIcon.title = 'Click for more information about stock management';
+    helpIcon.style.cursor = 'pointer';
+    
+    // Append it to the header
+    stockHeader.appendChild(helpIcon);
+    
+    // Add click event to show the info modal
+    helpIcon.addEventListener('click', () => {
+      document.getElementById('stockInfoModal').style.display = 'block';
+    });
   }
 }
 

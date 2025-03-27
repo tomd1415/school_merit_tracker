@@ -94,19 +94,18 @@ async function loadPupils(form_id = '') {
       // Store pupil_id in a data attribute (no longer as a visible column)
       row.setAttribute('data-pupil-id', pupil.pupil_id);
 
-      // Build the row cells
+      // Build the row cells with consistent styling
       row.innerHTML = `
-        <td class="${inlineEditEnabled ? 'editable' : ''}" data-field="first_name">${pupil.first_name}</td>
-        <td class="${inlineEditEnabled ? 'editable' : ''}" data-field="last_name">${pupil.last_name}</td>
-        <td class="${inlineEditEnabled ? 'editable' : ''}" data-field="form_name" data-formid="${pupil.form_id}">${pupil.form_name}</td>
-        <td class="${inlineEditEnabled ? 'editable' : ''}" data-field="merits">${pupil.merits}</td>
-        <!-- NEW: remaining_merits column (always read-only, no "editable" class) -->
+        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="first_name">${pupil.first_name}</td>
+        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="last_name">${pupil.last_name}</td>
+        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="form_name" data-formid="${pupil.form_id}">${pupil.form_name}</td>
+        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="merits">${pupil.merits}</td>
         <td class="remaining_merits">
           ${pupil.remaining_merits != null ? pupil.remaining_merits : 'N/A'}
         </td>
         <td>
-          <button onclick="openEditModal(${pupil.pupil_id})">Edit</button>
-          <button onclick="confirmDeletePupil(${pupil.pupil_id})">Delete</button>
+          <button class="edit-btn" onclick="openEditModal(${pupil.pupil_id})">Edit</button>
+          <button class="delete-btn" onclick="confirmDeletePupil(${pupil.pupil_id})">Delete</button>
         </td>
       `;
 

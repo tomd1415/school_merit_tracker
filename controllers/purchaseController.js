@@ -78,7 +78,7 @@ exports.createPurchase = async (req, res) => {
     }
     const cost_merits = prizeCheck.rows[0].cost_merits;
 
-    // 2) Check pupil’s current *remaining* merits using the view
+    // 2) Check pupil's current *remaining* merits using the view
     //    pupil_remaining_merits has "pupil_id" and "remaining_merits"
     const remainCheck = await pool.query(`
       SELECT remaining_merits
@@ -125,8 +125,21 @@ exports.cancelPurchase = async (req, res) => {
   try {
     const { purchaseId } = req.params;
 
-    // Delete that purchase record. Alternatively, you could do a "soft delete"
-    // e.g., UPDATE purchase SET active=false WHERE purchase_id=$1
+    // First, get the purchase details to know which pupil and prize were involved
+    const purchaseResult = await pool.query(`
+      SELECT pupil_id, prize_id, merit_cost_at_time
+      FROM purchase
+      WHERE purchase_id = $1
+    `, [purchaseId]);
+
+    if (purchaseResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Purchase not found' });
+    }
+
+    const purchase = purchaseResult.rows[0];
+    const { pupil_id, merit_cost_at_time } = purchase;
+
+    // Delete or deactivate the purchase
     const result = await pool.query(`
       DELETE FROM purchase
       WHERE purchase_id = $1
@@ -134,12 +147,24 @@ exports.cancelPurchase = async (req, res) => {
     `, [purchaseId]);
 
     if (result.rowCount === 0) {
-      // No matching purchase found
       return res.status(404).json({ error: 'Purchase not found' });
     }
 
-    // If successful:
-    return res.json({ success: true, message: 'Purchase canceled' });
+    // After canceling, get the updated remaining merits for the pupil
+    const meritResult = await pool.query(`
+      SELECT remaining_merits
+      FROM pupil_remaining_merits
+      WHERE pupil_id = $1
+    `, [pupil_id]);
+
+    const updatedMerits = meritResult.rowCount > 0 ? meritResult.rows[0].remaining_merits : null;
+
+    // Return success with the updated merit count
+    return res.json({ 
+      success: true, 
+      message: 'Purchase canceled',
+      updatedMerits: updatedMerits
+    });
   } catch (err) {
     console.error('Error canceling purchase:', err);
     res.status(500).json({ error: 'Failed to cancel purchase' });
