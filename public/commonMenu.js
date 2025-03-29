@@ -11,6 +11,7 @@ const menuHTML = `
   ">
     <nav>
       <a href="/pupils" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Manage Pupils</a>
+      <a href="/forms" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Manage Forms</a>
       <a href="/prizes" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Manage Prizes</a>
       <a href="/purchase" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Purchase Prizes</a>
       <a href="/upload/csv/pupils" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Upload Pupils CSV</a>

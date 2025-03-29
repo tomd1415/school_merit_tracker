@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Management</title>
+  <link rel="stylesheet" href="forms.css" />
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <h1>Form Management</h1>
+  </header>
+  
+  <main>
+    <div class="button-bar">
+      <div class="button-group">
+        <button id="addFormBtn" class="primary-btn">Add Form</button>
+      </div>
+      
+      <div class="toggle-group">
+        <label for="inlineEditToggle">Allow Inline Edit:</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="inlineEditToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <table id="formTable">
+        <thead>
+          <tr>
+            <th>Form Name</th>
+            <th>Form Tutor</th>
+            <th>Year Group</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody><!-- Forms inserted dynamically --></tbody>
+      </table>
+    </div>
+  </main>
+  
+  <!-- Edit Form Modal -->
+  <div id="editModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>Edit Form</h2>
+      <form id="editFormForm">
+        <input type="hidden" id="editFormId" />
+        <div class="form-group">
+          <label for="editFormName">Form Name:</label>
+          <input type="text" id="editFormName" required />
+        </div>
+        <div class="form-group">
+          <label for="editFormTutor">Form Tutor:</label>
+          <input type="text" id="editFormTutor" required />
+        </div>
+        <div class="form-group">
+          <label for="editYearGroup">Year Group:</label>
+          <input type="number" id="editYearGroup" min="0" max="14" required />
+        </div>
+        <div id="editModalFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Save Changes</button>
+          <button type="button" id="cancelEditBtn" class="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Form Modal -->
+  <div id="addFormModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn" id="closeAddFormModal">&times;</span>
+      <h2>Add New Form</h2>
+      <form id="addFormForm">
+        <div class="form-group">
+          <label for="addFormName">Form Name:</label>
+          <input type="text" id="addFormName" required />
+        </div>
+        <div class="form-group">
+          <label for="addFormTutor">Form Tutor:</label>
+          <input type="text" id="addFormTutor" required />
+        </div>
+        <div class="form-group">
+          <label for="addYearGroup">Year Group:</label>
+          <input type="number" id="addYearGroup" min="0" max="14" required />
+        </div>
+        <div id="addFormFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Add Form</button>
+          <button type="button" id="cancelAddFormBtn" class="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="forms.js"></script>
+  <script src="/commonMenu.js"></script>
+</body>
+</html> 
