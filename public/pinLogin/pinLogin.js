@@ -1,49 +1,76 @@
 // public/pinLogin/pinLogin.js
-document.addEventListener('DOMContentLoaded', () => {
-  const pinDisplay = document.getElementById('pinDisplay');
-  const pinInput = document.getElementById('pinInput');
-  const pinForm = document.getElementById('pinForm');
 
-  let enteredDigits = [];
+// Global modal functions
+function showModal(modalElement) {
+  modalElement.style.display = 'flex';
+  setTimeout(() => {
+    modalElement.classList.add('show');
+  }, 10);
+}
 
-  // Update the display to show number of entered digits or placeholders
-  function updateDisplay() {
-      // Create a string of as many '•' as the number of digits
-  pinDisplay.textContent = '•'.repeat(enteredDigits.length);
-  }
+function hideModal(modalElement) {
+  modalElement.classList.remove('show');
+  setTimeout(() => {
+    modalElement.style.display = 'none';
+  }, 300);
+}
 
-  function addDigit(digit) {
-    if (enteredDigits.length < 6) {
-      enteredDigits.push(digit);
+// Get DOM elements
+const pinDisplay = document.getElementById('pinDisplay');
+const pinInput = document.getElementById('pinInput');
+const pinForm = document.getElementById('pinForm');
+const digitBtns = document.querySelectorAll('.digit-btn');
+const backspaceBtn = document.getElementById('backspaceBtn');
+const submitPinBtn = document.getElementById('submitPinBtn');
+
+let currentPin = '';
+const maxLength = 6;
+
+// Add event listeners
+digitBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (currentPin.length < maxLength) {
+      const digit = btn.dataset.digit;
+      currentPin += digit;
       updateDisplay();
-    }
-  }
-
-  function removeDigit() {
-    enteredDigits.pop();
-    updateDisplay();
-  }
-
-  // Listen for digit button clicks
-  document.querySelectorAll('.digit-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const digit = btn.getAttribute('data-digit');
-      addDigit(digit);
-    });
-  });
-
-  // Backspace (Del) button
-  document.getElementById('backspaceBtn').addEventListener('click', removeDigit);
-
-  // Submit (OK) button
-  document.getElementById('submitPinBtn').addEventListener('click', () => {
-    // If we have 6 digits, submit
-    if (enteredDigits.length === 6) {
-      pinInput.value = enteredDigits.join('');
-      pinForm.submit();
-    } else {
-      alert('Please enter 6 digits before submitting.');
     }
   });
 });
+
+backspaceBtn.addEventListener('click', () => {
+  if (currentPin.length > 0) {
+    currentPin = currentPin.slice(0, -1);
+    updateDisplay();
+  }
+});
+
+submitPinBtn.addEventListener('click', () => {
+  if (currentPin.length === maxLength) {
+    submitPin();
+  }
+});
+
+// Handle keyboard input
+document.addEventListener('keydown', (e) => {
+  if (/^\d$/.test(e.key) && currentPin.length < maxLength) {
+    currentPin += e.key;
+    updateDisplay();
+  } else if (e.key === 'Backspace' && currentPin.length > 0) {
+    currentPin = currentPin.slice(0, -1);
+    updateDisplay();
+  } else if (e.key === 'Enter' && currentPin.length === maxLength) {
+    submitPin();
+  }
+});
+
+// Update the pin display with dots
+function updateDisplay() {
+  pinDisplay.textContent = '•'.repeat(currentPin.length);
+}
+
+// Submit the PIN to the server
+function submitPin() {
+  pinInput.value = currentPin;
+  pinForm.submit();
+}
 

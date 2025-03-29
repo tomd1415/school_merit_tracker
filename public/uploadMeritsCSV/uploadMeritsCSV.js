@@ -1,20 +1,37 @@
 // public/uploadMeritsCSV/uploadMeritsCSV.js
+
+// Global modal functions
+function showModal(modalElement) {
+  modalElement.style.display = 'flex';
+  setTimeout(() => {
+    modalElement.classList.add('show');
+  }, 10);
+}
+
+function hideModal(modalElement) {
+  modalElement.classList.remove('show');
+  setTimeout(() => {
+    modalElement.style.display = 'none';
+  }, 300);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const uploadForm = document.getElementById('uploadForm');
   const csvFileInput = document.getElementById('csvFile');
-  const uploadMessage = document.getElementById('uploadMessage');
+  const messageEl = document.getElementById('uploadMessage');
   const errorBox = document.getElementById('errorBox');
   const errorList = document.getElementById('errorList');
 
   uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    uploadMessage.textContent = '';
+    messageEl.textContent = 'Uploading...';
+    messageEl.className = 'feedback-message';
     errorBox.style.display = 'none';
     errorList.innerHTML = '';
 
     const file = csvFileInput.files[0];
     if (!file) {
-      uploadMessage.textContent = 'Please select a CSV file.';
+      messageEl.textContent = 'Please select a CSV file.';
       return;
     }
 
@@ -27,32 +44,32 @@ document.addEventListener('DOMContentLoaded', () => {
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      const result = await response.json();
+      
+      if (response.ok) {
+        messageEl.textContent = result.message || 'Upload successful!';
+        messageEl.className = 'feedback-message success';
+        // Clear the file input
+        document.getElementById('csvFile').value = '';
+        
+        // Show not found pupils if any
+        if (result.notFoundPupils && result.notFoundPupils.length > 0) {
+          errorList.innerHTML = '';
+          result.notFoundPupils.forEach(pupil => {
+            const li = document.createElement('li');
+            li.textContent = pupil;
+            errorList.appendChild(li);
+          });
+          errorBox.style.display = 'block';
+        }
+      } else {
+        messageEl.textContent = result.error || 'Upload failed. Please try again.';
+        messageEl.className = 'feedback-message error';
       }
-
-      const result = await response.json(); 
-      // e.g. { updatedCount: 3, missing: ["bob jones", "alice rogers"] }
-
-      // Show success message:
-      uploadMessage.style.color = 'green';
-      uploadMessage.textContent = 
-        `Upload complete. Updated: ${result.updatedCount}.`;
-
-      // If we have missing pupils, display them:
-      if (result.missing && result.missing.length > 0) {
-        errorBox.style.display = 'block';
-        result.missing.forEach(name => {
-          const li = document.createElement('li');
-          li.textContent = name;
-          errorList.appendChild(li);
-        });
-      }
-
-    } catch (err) {
-      console.error(err);
-      uploadMessage.style.color = 'red';
-      uploadMessage.textContent = 'Error uploading or processing CSV.';
+    } catch (error) {
+      console.error('Error uploading CSV:', error);
+      messageEl.textContent = 'An error occurred during upload. Please try again.';
+      messageEl.className = 'feedback-message error';
     }
   });
 });

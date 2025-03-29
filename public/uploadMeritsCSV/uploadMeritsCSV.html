@@ -3,8 +3,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Merits CSV</title>
-  <link rel="stylesheet" href="/uploadMeritsCSV/uploadMeritsCSV.css" />
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/forms-specific.css" />
 </head>
 <body>
   <header>
@@ -20,11 +22,11 @@
           <label for="csvFile">CSV File:</label>
           <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
         </div>
-        <button type="submit">Upload</button>
+        <button type="submit" class="primary-btn">Upload</button>
       </form>
-      <div id="uploadMessage"></div>
+      <div id="uploadMessage" class="feedback-message"></div>
 
-      <div class="error-box" id="errorBox" style="display: none;">
+      <div id="errorBox" class="error-box" style="display: none;">
         <h3>Could Not Update These Pupils (Not Found):</h3>
         <ul id="errorList"></ul>
       </div>
@@ -34,5 +36,4 @@
   <script src="/uploadMeritsCSV/uploadMeritsCSV.js"></script>
   <script src="/commonMenu.js"></script>
 </body>
-</html>
-
+</html> 

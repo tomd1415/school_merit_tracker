@@ -3,6 +3,21 @@
 let inlineEditEnabled = false;      // Track whether inline editing is on/off
 let allPrizes = [];                // We'll store the fetched prizes here
 
+// Global modal functions
+function showModal(modalElement) {
+  modalElement.style.display = 'flex';
+  setTimeout(() => {
+    modalElement.classList.add('show');
+  }, 10);
+}
+
+function hideModal(modalElement) {
+  modalElement.classList.remove('show');
+  setTimeout(() => {
+    modalElement.style.display = 'none';
+  }, 300);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   // 1) Setup the inline-edit toggle
   const inlineEditToggle = document.getElementById('inlineEditToggle');
@@ -19,13 +34,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 3) Setup the "Add Prize" modal open/close
   document.getElementById('addPrizeBtn').addEventListener('click', () => {
-    document.getElementById('addPrizeModal').style.display = 'block';
+    showModal(document.getElementById('addPrizeModal'));
   });
   document.getElementById('closeAddPrizeModal').addEventListener('click', () => {
-    document.getElementById('addPrizeModal').style.display = 'none';
+    hideModal(document.getElementById('addPrizeModal'));
   });
   document.getElementById('cancelAddPrizeBtn').addEventListener('click', () => {
-    document.getElementById('addPrizeModal').style.display = 'none';
+    hideModal(document.getElementById('addPrizeModal'));
   });
 
   // 4) Handle "Add Prize" form submission
@@ -33,10 +48,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 5) Setup the "Edit Prize" modal open/close
   document.getElementById('closeEditPrizeModal').addEventListener('click', () => {
-    document.getElementById('editPrizeModal').style.display = 'none';
+    hideModal(document.getElementById('editPrizeModal'));
   });
   document.getElementById('cancelEditPrizeBtn').addEventListener('click', () => {
-    document.getElementById('editPrizeModal').style.display = 'none';
+    hideModal(document.getElementById('editPrizeModal'));
   });
 
   // 6) Handle "Edit Prize" form submission
@@ -47,10 +62,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // 8) Setup stock info modal
   document.getElementById('closeStockInfoModal').addEventListener('click', () => {
-    document.getElementById('stockInfoModal').style.display = 'none';
+    hideModal(document.getElementById('stockInfoModal'));
   });
   document.getElementById('closeStockInfoButton').addEventListener('click', () => {
-    document.getElementById('stockInfoModal').style.display = 'none';
+    hideModal(document.getElementById('stockInfoModal'));
   });
   
   // 9) Add help icon to the stock adjustment header
@@ -370,7 +385,7 @@ async function addPrizeHandler(e) {
     });
     if (response.ok) {
       await loadPrizes();
-      document.getElementById('addPrizeModal').style.display = 'none';
+      hideModal(document.getElementById('addPrizeModal'));
     } else {
       const result = await response.json();
       feedback.textContent = result.error || 'Error adding prize';
@@ -397,7 +412,7 @@ async function openEditPrizeModal(prizeId) {
     document.getElementById('currentPrizeImage').innerHTML =
       `<img src="${prize.image_path}" alt="Current Prize Image" style="width:100px;height:auto;">`;
 
-    document.getElementById('editPrizeModal').style.display = 'block';
+    showModal(document.getElementById('editPrizeModal'));
   } catch (error) {
     console.error('Error fetching prize for editing:', error);
   }
@@ -439,7 +454,7 @@ async function editPrizeFormHandler(e) {
     });
     if (response.ok) {
       await loadPrizes();
-      document.getElementById('editPrizeModal').style.display = 'none';
+      hideModal(document.getElementById('editPrizeModal'));
     } else {
       const result = await response.json();
       feedback.textContent = result.error || 'Error updating prize';
@@ -541,7 +556,7 @@ function addStockHelpIcon() {
     
     // Add click event to show the info modal
     helpIcon.addEventListener('click', () => {
-      document.getElementById('stockInfoModal').style.display = 'block';
+      showModal(document.getElementById('stockInfoModal'));
     });
   }
 }

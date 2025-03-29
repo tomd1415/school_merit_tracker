@@ -1,0 +1,177 @@
+/* components.css - Shared UI components */
+
+/* Toggle switch styling */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--gray-light);
+  transition: var(--transition);
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--white);
+  transition: var(--transition);
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px var(--primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Editable styling */
+.editable {
+  position: relative;
+  transition: var(--transition);
+}
+
+.editable:hover::after {
+  content: '✏️';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 14px;
+}
+
+.editable:focus {
+  outline: none;
+  background-color: rgba(0, 58, 105, 0.05);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+/* Preview image styling */
+.preview-image {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  background-color: var(--light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image img {
+  max-width: 200px;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: calc(var(--border-radius) - 2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Tooltip styling */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-icon {
+  cursor: help;
+  color: var(--secondary);
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+.tooltip .tooltip-text {
+  visibility: hidden;
+  width: 220px;
+  background-color: var(--dark);
+  color: var(--white);
+  text-align: left;
+  border-radius: var(--border-radius);
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--dark) transparent transparent transparent;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Help text styling */
+.help-text {
+  font-size: 13px;
+  color: var(--gray);
+  font-style: italic;
+  background-color: var(--light);
+  padding: 6px 10px;
+  border-radius: var(--border-radius);
+  border-left: 3px solid var(--danger);
+  margin-top: 8px;
+}
+
+/* Card styling */
+.card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Animation for card loading */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Highlight styles */
+.highlight {
+  font-weight: 600;
+  color: var(--primary);
+} 

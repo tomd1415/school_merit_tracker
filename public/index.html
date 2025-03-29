@@ -3,46 +3,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>School Merit Tracker - Home</title>
+  <link rel="stylesheet" href="/css/common.css" />
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #ffffff;
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
     }
-    header {
-      background-color: #003a69;
-      color: #ffffff;
-      padding: 20px;
-      position: relative;
+    
+    .links a {
+      display: inline-block;
+      padding: 15px 30px;
+      border-radius: var(--border-radius);
+      background-color: var(--primary);
+      color: var(--white);
+      text-decoration: none;
+      font-size: 18px;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
     }
-    header h1 {
-      margin: 0;
+    
+    .links a:hover {
+      background-color: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
+    
     #signOutBtn {
       position: absolute;
       top: 20px;
       right: 20px;
-      background-color: #005a98;
-      border: none;
-      color: #ffffff;
-      padding: 8px 16px;
-      cursor: pointer;
-      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: var(--white);
     }
-    main {
-      padding: 20px;
-      text-align: center;
+    
+    #signOutBtn:hover {
+      background-color: rgba(255, 255, 255, 0.3);
     }
-    .links a {
-      display: inline-block;
-      margin: 10px;
-      padding: 15px 30px;
-      border-radius: 8px;
-      background-color: #005a98;
-      color: #ffffff;
-      text-decoration: none;
-      font-size: 18px;
+    
+    @media (max-width: 768px) {
+      .links {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .links a {
+        text-align: center;
+      }
+      
+      #signOutBtn {
+        position: static;
+        margin: var(--spacing-md) auto;
+        display: block;
+      }
     }
   </style>
 </head>

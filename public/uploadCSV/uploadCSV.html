@@ -3,8 +3,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload CSV (Pupils)</title>
-  <link rel="stylesheet" href="/uploadCSV/uploadCSV.css" />
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/forms-specific.css" />
 </head>
 <body>
   <header>
@@ -20,14 +22,13 @@
           <label for="csvFile">CSV File:</label>
           <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
         </div>
-        <button type="submit">Upload</button>
+        <button type="submit" class="primary-btn">Upload</button>
       </form>
-      <p id="uploadMessage"></p>
+      <div id="uploadMessage" class="feedback-message"></div>
     </section>
   </main>
 
   <script src="/uploadCSV/uploadCSV.js"></script>
   <script src="/commonMenu.js"></script>
 </body>
-</html>
-
+</html> 

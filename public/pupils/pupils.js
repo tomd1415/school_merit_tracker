@@ -4,6 +4,21 @@
 let inlineEditEnabled = false;
 let formsData = []; // to store forms for editing
 
+// Global modal functions
+function showModal(modalElement) {
+  modalElement.style.display = 'flex';
+  setTimeout(() => {
+    modalElement.classList.add('show');
+  }, 10);
+}
+
+function hideModal(modalElement) {
+  modalElement.classList.remove('show');
+  setTimeout(() => {
+    modalElement.style.display = 'none';
+  }, 300);
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
   // 1. Load forms for filter dropdown + edit form select
   await loadForms();
@@ -26,11 +41,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   const cancelEditBtn = document.getElementById('cancelEditBtn');
 
   closeBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
+    hideModal(modal);
   });
 
   cancelEditBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
+    hideModal(modal);
   });
 
   // Handle form submission in modal
@@ -260,7 +275,7 @@ async function openEditModal(pupil_id) {
     });
 
     // Show the modal
-    document.getElementById('editModal').style.display = 'block';
+    showModal(document.getElementById('editModal'));
   } catch (err) {
     console.error(err);
   }
@@ -305,7 +320,7 @@ async function submitEditForm() {
       modalFeedback.textContent = 'Pupil updated successfully.';
       // Close modal after a short delay
       setTimeout(() => {
-        document.getElementById('editModal').style.display = 'none';
+        hideModal(document.getElementById('editModal'));
         loadPupils(document.getElementById('formFilter').value);
       }, 800);
     }
@@ -339,124 +354,127 @@ async function deletePupil(pupil_id) {
   }
 }
 
-// 1. REFS to the new add modals and buttons
-const addPupilBtn = document.getElementById('addPupilBtn');
-const addPupilModal = document.getElementById('addPupilModal');
-const closeAddPupilModal = document.getElementById('closeAddPupilModal');
-const cancelAddPupilBtn = document.getElementById('cancelAddPupilBtn');
-const addPupilForm = document.getElementById('addPupilForm');
+// Event listeners for Add Pupil modal
+document.addEventListener('DOMContentLoaded', () => {
+  const addPupilBtn = document.getElementById('addPupilBtn');
+  const addPupilModal = document.getElementById('addPupilModal');
+  const closeAddPupilModal = document.getElementById('closeAddPupilModal');
+  const cancelAddPupilBtn = document.getElementById('cancelAddPupilBtn');
+  const addFormBtn = document.getElementById('addFormBtn');
+  const addFormModal = document.getElementById('addFormModal');
+  const closeAddFormModal = document.getElementById('closeAddFormModal');
+  const cancelAddFormBtn = document.getElementById('cancelAddFormBtn');
+  const addPupilForm = document.getElementById('addPupilForm');
+  const addFormFormEl = document.getElementById('addFormForm');
 
-const addFormBtn = document.getElementById('addFormBtn');
-const addFormModal = document.getElementById('addFormModal');
-const closeAddFormModal = document.getElementById('closeAddFormModal');
-const cancelAddFormBtn = document.getElementById('cancelAddFormBtn');
-const addFormFormEl = document.getElementById('addFormForm');
+  addPupilBtn.addEventListener('click', () => {
+    // Before showing the modal, populate the form dropdown
+    populateAddPupilFormSelect();
+    showModal(addPupilModal);
+  });
+  
+  closeAddPupilModal.addEventListener('click', () => {
+    hideModal(addPupilModal);
+  });
+  
+  cancelAddPupilBtn.addEventListener('click', () => {
+    hideModal(addPupilModal);
+  });
 
-// 2. EVENT LISTENERS to open / close modals
-addPupilBtn.addEventListener('click', () => {
-  // Before showing the "Add Pupil" modal, populate the "Form" dropdown
-  populateAddPupilFormSelect();
-  addPupilModal.style.display = 'block';
-});
+  // For Add Form
+  addFormBtn.addEventListener('click', () => {
+    showModal(addFormModal);
+  });
+  
+  closeAddFormModal.addEventListener('click', () => {
+    hideModal(addFormModal);
+  });
+  
+  cancelAddFormBtn.addEventListener('click', () => {
+    hideModal(addFormModal);
+  });
 
-closeAddPupilModal.addEventListener('click', () => {
-  addPupilModal.style.display = 'none';
-});
-cancelAddPupilBtn.addEventListener('click', () => {
-  addPupilModal.style.display = 'none';
-});
+  // 3. SUBMIT Add Pupil form
+  addPupilForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const feedbackEl = document.getElementById('addPupilFeedback');
+    feedbackEl.textContent = '';
 
-// For Add Form
-addFormBtn.addEventListener('click', () => {
-  addFormModal.style.display = 'block';
-});
-closeAddFormModal.addEventListener('click', () => {
-  addFormModal.style.display = 'none';
-});
-cancelAddFormBtn.addEventListener('click', () => {
-  addFormModal.style.display = 'none';
-});
+    const first_name = document.getElementById('addPupilFirstName').value.trim();
+    const last_name = document.getElementById('addPupilLastName').value.trim();
+    const form_id = document.getElementById('addPupilFormSelect').value;
 
-// 3. SUBMIT Add Pupil form
-addPupilForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const feedbackEl = document.getElementById('addPupilFeedback');
-  feedbackEl.textContent = '';
-
-  const first_name = document.getElementById('addPupilFirstName').value.trim();
-  const last_name = document.getElementById('addPupilLastName').value.trim();
-  const form_id = document.getElementById('addPupilFormSelect').value;
-
-  if (!first_name || !last_name || !form_id) {
-    feedbackEl.textContent = 'Please fill out all required fields.';
-    return;
-  }
-
-  // Send POST request to /pupils/add
-  try {
-    const res = await fetch('/pupils/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ first_name, last_name, form_id })
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      feedbackEl.textContent = data.error || 'Failed to add pupil.';
-    } else {
-      feedbackEl.style.color = 'green';
-      feedbackEl.textContent = 'Pupil added successfully!';
-      // Close modal after a short delay
-      setTimeout(() => {
-        addPupilModal.style.display = 'none';
-        // Reload pupils to show the new entry
-        loadPupils(document.getElementById('formFilter').value);
-      }, 800);
+    if (!first_name || !last_name || !form_id) {
+      feedbackEl.textContent = 'Please fill out all required fields.';
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    feedbackEl.textContent = 'An error occurred.';
-  }
-});
 
-// 4. SUBMIT Add Form form
-addFormFormEl.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const feedbackEl = document.getElementById('addFormFeedback');
-  feedbackEl.textContent = '';
-
-  const form_name = document.getElementById('addFormName').value.trim();
-  const form_tutor = document.getElementById('addFormTutor').value.trim();
-  const year_group = document.getElementById('addFormYearGroup').value.trim();
-
-  if (!form_name) {
-    feedbackEl.textContent = 'Form name is required.';
-    return;
-  }
-
-  // Send POST request to /pupils/addForm
-  try {
-    const res = await fetch('/pupils/addForm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ form_name, form_tutor, year_group })
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      feedbackEl.textContent = data.error || 'Failed to add form.';
-    } else {
-      feedbackEl.style.color = 'green';
-      feedbackEl.textContent = 'Form added successfully!';
-      // Close modal after a short delay
-      setTimeout(async () => {
-        addFormModal.style.display = 'none';
-        // Reload forms so new form appears in dropdowns
-        await loadForms();
-      }, 800);
+    // Send POST request to /pupils/add
+    try {
+      const res = await fetch('/pupils/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ first_name, last_name, form_id })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        feedbackEl.textContent = data.error || 'Failed to add pupil.';
+      } else {
+        feedbackEl.style.color = 'green';
+        feedbackEl.textContent = 'Pupil added successfully!';
+        // Close modal after a short delay
+        setTimeout(() => {
+          hideModal(addPupilModal);
+          // Reload pupils to show the new entry
+          loadPupils(document.getElementById('formFilter').value);
+        }, 800);
+      }
+    } catch (err) {
+      console.error(err);
+      feedbackEl.textContent = 'An error occurred.';
     }
-  } catch (err) {
-    console.error(err);
-    feedbackEl.textContent = 'An error occurred.';
-  }
+  });
+
+  // 4. SUBMIT Add Form form
+  addFormFormEl.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const feedbackEl = document.getElementById('addFormFeedback');
+    feedbackEl.textContent = '';
+
+    const form_name = document.getElementById('addFormName').value.trim();
+    const form_tutor = document.getElementById('addFormTutor').value.trim();
+    const year_group = document.getElementById('addFormYearGroup').value.trim();
+
+    if (!form_name) {
+      feedbackEl.textContent = 'Form name is required.';
+      return;
+    }
+
+    // Send POST request to /pupils/addForm
+    try {
+      const res = await fetch('/pupils/addForm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ form_name, form_tutor, year_group })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        feedbackEl.textContent = data.error || 'Failed to add form.';
+      } else {
+        feedbackEl.style.color = 'green';
+        feedbackEl.textContent = 'Form added successfully!';
+        // Close modal after a short delay
+        setTimeout(async () => {
+          hideModal(addFormModal);
+          // Reload forms so new form appears in dropdowns
+          await loadForms();
+        }, 800);
+      }
+    } catch (err) {
+      console.error(err);
+      feedbackEl.textContent = 'An error occurred.';
+    }
+  });
 });
 
 // 5. POPULATE the "Add Pupil" form's dropdown with the existing forms
