@@ -4,6 +4,7 @@
 let inlineEditEnabled = false;
 let formsData = []; // to store forms for editing
 let allPupils = []; // to store all loaded pupils for filtering
+let currentTransactionPupil = null; // Store pupil for transaction modal
 
 // Global modal functions
 function showModal(modalElement) {
@@ -50,6 +51,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   cancelEditBtn.addEventListener('click', () => {
     hideModal(modal);
+  });
+
+  // Setup transaction modal close button
+  const transactionModal = document.getElementById('transactionModal');
+  const closeTransactionBtn = transactionModal.querySelector('.close-btn');
+  closeTransactionBtn.addEventListener('click', () => {
+    hideModal(transactionModal);
   });
 
   // Handle form submission in modal
@@ -167,8 +175,11 @@ function displayPupils(pupils) {
         ${pupil.remaining_merits != null ? pupil.remaining_merits : 'N/A'}
       </td>
       <td>
-        <button class="edit-btn" onclick="openEditModal(${pupil.pupil_id})">Edit</button>
-        <button class="delete-btn" onclick="confirmDeletePupil(${pupil.pupil_id})">Delete</button>
+        <div class="action-buttons">
+          <button class="edit-btn" onclick="openEditModal(${pupil.pupil_id})">Edit</button>
+          <button class="transaction-btn" onclick="openTransactionModal(${pupil.pupil_id}, '${pupil.first_name} ${pupil.last_name}')">Txns</button>
+          <button class="delete-btn" onclick="confirmDeletePupil(${pupil.pupil_id})">Delete</button>
+        </div>
       </td>
     `;
 
@@ -179,6 +190,92 @@ function displayPupils(pupils) {
   if (inlineEditEnabled) {
     enableInlineEditing();
   }
+}
+
+// Open transaction modal and load pupil transactions
+async function openTransactionModal(pupilId, pupilName) {
+  currentTransactionPupil = { id: pupilId, name: pupilName };
+  
+  // Get modal elements
+  const modal = document.getElementById('transactionModal');
+  const title = modal.querySelector('h2');
+  const transactionsList = document.getElementById('transactionsList');
+  
+  // Update modal title
+  title.textContent = `Transactions for ${pupilName}`;
+  
+  // Show loading message
+  transactionsList.innerHTML = '<div class="loading">Loading transactions...</div>';
+  
+  // Show the modal
+  showModal(modal);
+  
+  try {
+    // Fetch transactions for this pupil
+    const response = await fetch(`/pupils/${pupilId}/transactions`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch transactions');
+    }
+    
+    const transactions = await response.json();
+    
+    // Display the transactions
+    if (transactions.length === 0) {
+      transactionsList.innerHTML = '<div class="no-transactions">No transactions found</div>';
+    } else {
+      displayTransactions(transactions, transactionsList);
+    }
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    transactionsList.innerHTML = '<div class="error">Failed to load transactions. Please try again.</div>';
+  }
+}
+
+// Display transactions in the modal
+function displayTransactions(transactions, container) {
+  container.innerHTML = '';
+  
+  transactions.forEach(transaction => {
+    const transactionDate = new Date(transaction.date);
+    const formattedDate = transactionDate.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+    
+    const timeString = transactionDate.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // Create transaction card
+    const card = document.createElement('div');
+    card.className = 'transaction-card';
+    
+    // Transaction status (active or canceled)
+    const statusClass = transaction.active ? 'transaction-active' : 'transaction-canceled';
+    
+    card.innerHTML = `
+      <div class="transaction-header ${statusClass}">
+        <div class="transaction-date">${formattedDate} at ${timeString}</div>
+        <div class="transaction-status">${transaction.active ? 'Active' : 'Canceled'}</div>
+      </div>
+      <div class="transaction-content">
+        <div class="transaction-image">
+          <img src="${transaction.image_path || '/images/default-prize.png'}" 
+               alt="${transaction.description}" 
+               onerror="this.src='/images/default-prize.png'">
+        </div>
+        <div class="transaction-details">
+          <div class="transaction-description">${transaction.description}</div>
+          <div class="transaction-cost">${transaction.merit_cost_at_time} merits</div>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(card);
+  });
 }
 
 // Enable inline editing for relevant cells
@@ -223,7 +320,9 @@ async function handleInlineEditBlur(e) {
   if (field === 'merits' && isNaN(newValue)) {
     alert('Merits must be a valid number');
     // revert changes by reloading
-    await loadPupils(document.getElementById('formFilter').value);
+    await loadPupils();
+    // Re-apply filters
+    filterPupils();
     return;
   }
 
@@ -233,7 +332,9 @@ async function handleInlineEditBlur(e) {
     const match = formsData.find(f => f.form_name === newValue);
     if (!match) {
       alert('Unknown form name. Please use the modal for a bigger edit or select from known forms.');
-      await loadPupils(document.getElementById('formFilter').value);
+      await loadPupils();
+      // Re-apply filters
+      filterPupils();
       return;
     }
     form_id = match.form_id;

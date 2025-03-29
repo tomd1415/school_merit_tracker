@@ -27,6 +27,48 @@
   box-shadow: 0 0 0 2px rgba(0, 58, 105, 0.2);
 }
 
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.edit-btn, .delete-btn, .transaction-btn {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  border-radius: var(--border-radius);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.edit-btn {
+  background-color: var(--primary);
+  color: var(--white);
+}
+
+.delete-btn {
+  background-color: var(--danger);
+  color: var(--white);
+}
+
+.transaction-btn {
+  background-color: var(--secondary);
+  color: var(--white);
+}
+
+.edit-btn:hover, .transaction-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.delete-btn:hover {
+  background-color: var(--danger-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
 /* Center alignment for number columns */
 td[data-field="merits"],
 td.remaining_merits {
@@ -48,6 +90,130 @@ td.remaining_merits {
   box-shadow: 0 0 0 2px rgba(0, 58, 105, 0.2);
 }
 
+/* Transaction Modal Styles */
+.transaction-modal-content {
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.transactions-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-top: var(--spacing-md);
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-right: var(--spacing-sm);
+}
+
+.transaction-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-light);
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.transaction-active {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.transaction-canceled {
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.transaction-date {
+  font-weight: 500;
+  color: var(--primary-dark);
+}
+
+.transaction-status {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.transaction-active .transaction-status {
+  background-color: rgba(0, 123, 255, 0.2);
+  color: var(--primary);
+}
+
+.transaction-canceled .transaction-status {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: var(--danger);
+}
+
+.transaction-content {
+  display: flex;
+  padding: var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.transaction-image {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+.transaction-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-light);
+}
+
+.transaction-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.transaction-description {
+  font-weight: 500;
+  margin-bottom: var(--spacing-sm);
+  color: var(--dark);
+}
+
+.transaction-cost {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.loading, .no-transactions, .error {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.loading {
+  color: var(--primary);
+}
+
+.no-transactions {
+  color: var(--gray);
+  font-style: italic;
+}
+
+.error {
+  color: var(--danger);
+}
+
 @media (max-width: 768px) {
   .filter-group {
     flex-wrap: wrap;
@@ -56,5 +222,29 @@ td.remaining_merits {
   
   .search-input {
     width: 100%;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .edit-btn, .delete-btn, .transaction-btn {
+    width: 100%;
+    padding: 8px 5px;
+  }
+  
+  .transaction-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .transaction-image {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .transaction-details {
+    text-align: center;
   }
 } 

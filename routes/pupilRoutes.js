@@ -13,6 +13,9 @@ router.get('/all/json', requireFullAccess, pupilController.getAllPupils);
 // Get single pupil by ID (for editing)
 router.get('/:id/json', requireFullAccess, pupilController.getSinglePupil);
 
+// Get transactions for a pupil
+router.get('/:id/transactions', requireFullAccess, pupilController.getPupilTransactions);
+
 // Show the "Add Pupil" page
 //router.get('/add', pupilController.showAddPupilForm);
 

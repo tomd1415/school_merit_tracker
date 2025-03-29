@@ -109,6 +109,35 @@ exports.getSinglePupil = async (req, res) => {
   }
 };
 
+// Fetch all transactions for a pupil
+exports.getPupilTransactions = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Query to get all purchases for this pupil with prize details
+    const query = `
+      SELECT 
+        pu.purchase_id,
+        pu.date,
+        pu.merit_cost_at_time,
+        pu.active,
+        pr.description,
+        pr.image_path
+      FROM purchase pu
+      JOIN prizes pr ON pu.prize_id = pr.prize_id
+      WHERE pu.pupil_id = $1
+      ORDER BY pu.date DESC
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching pupil transactions:', err);
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
+};
+
 // POST edit pupil
 exports.editPupil = async (req, res) => {
   try {
@@ -167,7 +196,7 @@ exports.deletePupil = async (req, res) => {
     }
 
     // If this is an AJAX request, you can respond with JSON
-    // If it’s a simple link or redirect, you can do a redirect instead:
+    // If it's a simple link or redirect, you can do a redirect instead:
     res.json({ message: 'Pupil deleted (set to inactive)' });
   } catch (err) {
     console.error('Error deleting pupil:', err);
