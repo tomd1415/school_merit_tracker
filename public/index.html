@@ -8,88 +8,7 @@
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/home.css" />
-  
-  <!-- PIN modal styles -->
-  <style>
-    #pinLoginModal {
-      position: fixed;
-      z-index: 99999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .modal-content {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-      position: relative;
-    }
-    
-    #pinDisplay {
-      width: 180px;
-      height: 50px;
-      border: 2px solid #333;
-      border-radius: 6px;
-      margin: 0 auto 20px;
-      text-align: center;
-      line-height: 50px;
-      font-size: 2rem;
-      background-color: white;
-      letter-spacing: 5px;
-    }
-    
-    .keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 60px);
-      grid-gap: 10px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    
-    .keypad button {
-      font-size: 1.2rem;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background-color: #f8f8f8;
-      cursor: pointer;
-      color:black;
-    }
-    
-    #submitPinBtn {
-      grid-column: span 3;
-      background-color: #003a69;
-      color: white;
-    }
-    
-    .login-button {
-      display: block;
-      margin: 20px auto;
-      padding: 15px 30px;
-      font-size: 1.2rem;
-      background-color: #003a69;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    
-    .error-message {
-      color: red;
-      text-align: center;
-      margin-bottom: 10px;
-      display: none;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/pinModal.css" />
 </head>
 <body>
   <header>
@@ -97,7 +16,7 @@
     <h1>School Merit Tracker</h1>
     <div class="header-buttons">
       <button id="loginBtn" class="login-button">Login</button>
-      <button id="signOutBtn" style="display: none;">Sign Out</button>
+      <button id="signOutBtn">Sign Out</button>
     </div>
   </header>
   
@@ -155,7 +74,7 @@
   <!-- PIN Login Modal -->
   <div id="pinLoginModal">
     <div class="modal-content">
-      <span class="close-btn" id="closePinModal" style="position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer;">&times;</span>
+      <span class="close-btn" id="closePinModal">&times;</span>
       <h2>Enter PIN (6 digits)</h2>
       
       <div id="error-message" class="error-message">Incorrect PIN. Please try again.</div>
@@ -179,7 +98,7 @@
       </div>
       
       <!-- Hidden form -->
-      <form id="pinForm" action="/check-pin" method="POST" style="display: none;">
+      <form id="pinForm" action="/check-pin" method="POST">
         <input type="hidden" id="pinInput" name="pin" value="">
         <input type="hidden" id="redirectTarget" name="redirect" value="">
       </form>

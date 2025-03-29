@@ -21,9 +21,29 @@
   </header>
 
   <main>
-    <h2 class="page-subtitle">Select a prize to purchase</h2>
-    <div id="prizeContainer">
-      <!-- JavaScript will populate with available prizes -->
+    <div class="content-wrapper">
+      <div class="prizes-section">
+        <h2 class="page-subtitle">Select a prize to purchase</h2>
+        <div id="prizeContainer">
+          <!-- JavaScript will populate with available prizes -->
+        </div>
+      </div>
+      
+      <div class="pupil-search-panel">
+        <h2>Pupil Lookup</h2>
+        <div class="search-container">
+          <input type="text" id="sidebarPupilSearch" placeholder="Search pupil by name..." />
+          <div id="sidebarSearchResults">
+            <!-- Will be populated by JavaScript -->
+          </div>
+        </div>
+        <div class="selected-pupil-info">
+          <h3>Selected Pupil</h3>
+          <div id="selectedPupilDisplay">
+            <p class="no-pupil-selected">No pupil selected</p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 

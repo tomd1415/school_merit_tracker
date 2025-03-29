@@ -28,11 +28,87 @@
   text-align: center;
 }
 
+/* Main content layout */
+.content-wrapper {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.prizes-section {
+  flex: 1;
+}
+
+.pupil-search-panel {
+  width: 300px;
+  background-color: var(--light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+}
+
+.pupil-search-panel h2 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  font-size: 1.2rem;
+  color: var(--primary);
+  text-align: center;
+}
+
+.pupil-search-panel h3 {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+.search-container {
+  margin-bottom: var(--spacing-md);
+}
+
+.selected-pupil-info {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.no-pupil-selected {
+  color: var(--gray);
+  font-style: italic;
+  text-align: center;
+}
+
+.pupil-info-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.pupil-name-display {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.merit-display {
+  text-align: center;
+  color: var(--primary-dark);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.merit-value {
+  font-size: 2.2rem;
+  display: block;
+  margin: var(--spacing-sm) 0;
+}
+
 /* Prize container grid layout */
 #prizeContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-md);
   justify-content: center;
 }
 
@@ -48,8 +124,9 @@
   flex-direction: column;
   height: 100%;
   position: relative;
-  padding-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
   animation: fadeIn 0.5s ease forwards;
+  text-align: center;
 }
 
 .prize-card:hover {
@@ -70,49 +147,55 @@
 }
 
 .prize-card-content {
-  padding: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-sm);
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  align-items: center;
+  justify-content: center;
 }
 
 .prize-card h3 {
   margin: 0 0 var(--spacing-sm) 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--primary);
   line-height: 1.3;
+  text-align: center;
 }
 
-.prize-card p {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+.prize-cost {
+  font-size: 1.8rem;
+  font-weight: 700;
   color: var(--primary-dark);
+  display: block;
+  text-align: center;
 }
 
-/* Pupil search styling */
-#pupilSearch {
+/* Pupil search styling (sidebar and modal) */
+#pupilSearch, #sidebarPupilSearch {
   width: 100%;
   padding: 12px 15px;
-  margin: 0 0 var(--spacing-lg) 0;
+  margin: 0 0 var(--spacing-md) 0;
   font-size: 1.1rem;
   border: 1px solid var(--gray-light);
   border-radius: var(--border-radius);
   transition: var(--transition);
 }
 
-#pupilSearch:focus {
+#pupilSearch:focus, #sidebarPupilSearch:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(0, 58, 105, 0.2);
 }
 
 /* Search results and recent pupils */
-#searchResults, #recentPupils {
+#searchResults, #recentPupils, #sidebarSearchResults {
   margin-bottom: var(--spacing-lg);
+  max-height: 300px;
+  overflow-y: auto;
 }
 
-#searchResults h3, #recentPupils h3 {
+#searchResults h3, #recentPupils h3, #sidebarSearchResults h3 {
   margin-bottom: var(--spacing-md);
   color: var(--primary);
   font-size: 1.2rem;
@@ -123,7 +206,7 @@
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
   border-radius: var(--border-radius);
-  background-color: var(--light);
+  background-color: var(--white);
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -182,6 +265,21 @@
   animation-delay: 0.3s;
 }
 
+@media (max-width: 940px) {
+  .content-wrapper {
+    flex-direction: column-reverse;
+  }
+  
+  .pupil-search-panel {
+    width: 100%;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  #sidebarSearchResults {
+    max-height: 200px;
+  }
+}
+
 @media (max-width: 768px) {
   #signOutBtn {
     position: static;
@@ -189,11 +287,28 @@
   }
   
   #prizeContainer {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: var(--spacing-md);
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--spacing-sm);
+  }
+  
+  .prize-card-content {
+    padding: var(--spacing-sm);
+  }
+  
+  .prize-card h3 {
+    font-size: 0.9rem;
+  }
+  
+  .prize-cost {
+    font-size: 1.5rem;
   }
   
   #confirmationOkBtn, #cancelPurchaseBtn {
     width: 100%;
+  }
+  
+  .modal-content {
+    width: 95%;
+    padding: 15px;
   }
 } 

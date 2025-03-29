@@ -3,6 +3,7 @@
 // Global references
 let inlineEditEnabled = false;
 let formsData = []; // to store forms for editing
+let allPupils = []; // to store all loaded pupils for filtering
 
 // Global modal functions
 function showModal(modalElement) {
@@ -26,14 +27,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 2. Add event listener to the filter dropdown
   document.getElementById('formFilter').addEventListener('change', filterPupils);
 
-  // 3. Inline Edit Toggle
+  // 3. Add event listener to the search input
+  document.getElementById('pupilSearch').addEventListener('input', filterPupils);
+
+  // 4. Inline Edit Toggle
   document.getElementById('inlineEditToggle').addEventListener('change', (e) => {
     inlineEditEnabled = e.target.checked;
     toggleInlineEdit(inlineEditEnabled);
   });
 
-  // 4. Load all pupils (no form filter initially)
-  await filterPupils();
+  // 5. Load all pupils (no form filter initially)
+  await loadPupils();
 
   // Setup modal close/cancel
   const modal = document.getElementById('editModal');
@@ -82,10 +86,18 @@ async function loadForms() {
   }
 }
 
-// Filter pupils by selected form
-async function filterPupils() {
+// Filter pupils based on both form selection and search input
+function filterPupils() {
   const formFilterValue = document.getElementById('formFilter').value;
-  await loadPupils(formFilterValue);
+  const searchQuery = document.getElementById('pupilSearch').value.toLowerCase().trim();
+  
+  // If we have pupils loaded already, filter them
+  if (allPupils.length > 0) {
+    applyFilters(formFilterValue, searchQuery);
+  } else {
+    // Initial load
+    loadPupils(formFilterValue);
+  }
 }
 
 // Load pupils (with optional form_id)
@@ -99,40 +111,73 @@ async function loadPupils(form_id = '') {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Network response was not ok');
 
-    const pupils = await response.json();
-    const tbody = document.querySelector('#pupilTable tbody');
-    tbody.innerHTML = ''; // clear old rows
-
-    pupils.forEach((pupil) => {
-      const row = document.createElement('tr');
-      
-      // Store pupil_id in a data attribute (no longer as a visible column)
-      row.setAttribute('data-pupil-id', pupil.pupil_id);
-
-      // Build the row cells with consistent styling
-      row.innerHTML = `
-        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="first_name">${pupil.first_name}</td>
-        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="last_name">${pupil.last_name}</td>
-        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="form_name" data-formid="${pupil.form_id}">${pupil.form_name}</td>
-        <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="merits">${pupil.merits}</td>
-        <td class="remaining_merits">
-          ${pupil.remaining_merits != null ? pupil.remaining_merits : 'N/A'}
-        </td>
-        <td>
-          <button class="edit-btn" onclick="openEditModal(${pupil.pupil_id})">Edit</button>
-          <button class="delete-btn" onclick="confirmDeletePupil(${pupil.pupil_id})">Delete</button>
-        </td>
-      `;
-
-      tbody.appendChild(row);
-    });
-
-    // If inline editing is on, apply it to the newly created rows
-    if (inlineEditEnabled) {
-      enableInlineEditing();
-    }
+    // Store all pupils for filtering
+    allPupils = await response.json();
+    
+    // Get search input value
+    const searchQuery = document.getElementById('pupilSearch').value.toLowerCase().trim();
+    
+    // Apply both filters
+    applyFilters(form_id, searchQuery);
   } catch (error) {
     console.error('Error loading pupils:', error);
+  }
+}
+
+// Apply both form and search filters to the pupils list
+function applyFilters(formId, searchQuery) {
+  // Start with all pupils
+  let filteredPupils = [...allPupils];
+  
+  // Filter by form if a form ID is specified
+  if (formId) {
+    filteredPupils = filteredPupils.filter(pupil => pupil.form_id == formId);
+  }
+  
+  // Filter by search query if one exists
+  if (searchQuery) {
+    filteredPupils = filteredPupils.filter(pupil => {
+      const fullName = `${pupil.first_name} ${pupil.last_name}`.toLowerCase();
+      return fullName.includes(searchQuery);
+    });
+  }
+  
+  // Display the filtered pupils
+  displayPupils(filteredPupils);
+}
+
+// Display the filtered pupils in the table
+function displayPupils(pupils) {
+  const tbody = document.querySelector('#pupilTable tbody');
+  tbody.innerHTML = ''; // clear old rows
+
+  pupils.forEach((pupil) => {
+    const row = document.createElement('tr');
+    
+    // Store pupil_id in a data attribute (no longer as a visible column)
+    row.setAttribute('data-pupil-id', pupil.pupil_id);
+
+    // Build the row cells with consistent styling
+    row.innerHTML = `
+      <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="first_name">${pupil.first_name}</td>
+      <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="last_name">${pupil.last_name}</td>
+      <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="form_name" data-formid="${pupil.form_id}">${pupil.form_name}</td>
+      <td ${inlineEditEnabled ? 'class="editable"' : ''} data-field="merits">${pupil.merits}</td>
+      <td class="remaining_merits">
+        ${pupil.remaining_merits != null ? pupil.remaining_merits : 'N/A'}
+      </td>
+      <td>
+        <button class="edit-btn" onclick="openEditModal(${pupil.pupil_id})">Edit</button>
+        <button class="delete-btn" onclick="confirmDeletePupil(${pupil.pupil_id})">Delete</button>
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+  // If inline editing is on, apply it to the newly created rows
+  if (inlineEditEnabled) {
+    enableInlineEditing();
   }
 }
 
@@ -238,8 +283,11 @@ async function updatePupil(pupil_id, data) {
     if (!response.ok) {
       alert(result.error || 'Error updating pupil');
     } else {
-      // Reload table data to show changes
-      await loadPupils(document.getElementById('formFilter').value);
+      // Reload pupils to refresh data
+      await loadPupils();
+      
+      // Re-apply filters
+      filterPupils();
     }
   } catch (err) {
     console.error('Update Pupil Error:', err);
@@ -321,7 +369,10 @@ async function submitEditForm() {
       // Close modal after a short delay
       setTimeout(() => {
         hideModal(document.getElementById('editModal'));
-        loadPupils(document.getElementById('formFilter').value);
+        // Reload pupils to refresh data
+        loadPupils();
+        // Re-apply filters
+        filterPupils();
       }, 800);
     }
   } catch (err) {
@@ -348,7 +399,10 @@ async function deletePupil(pupil_id) {
       return;
     }
     // Successfully "deleted"
-    await loadPupils(document.getElementById('formFilter').value);
+    // Reload pupils to refresh data
+    await loadPupils();
+    // Re-apply filters
+    filterPupils();
   } catch (err) {
     console.error('Error deleting pupil:', err);
   }
@@ -425,8 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close modal after a short delay
         setTimeout(() => {
           hideModal(addPupilModal);
-          // Reload pupils to show the new entry
-          loadPupils(document.getElementById('formFilter').value);
+          // Reload pupils to refresh data
+          loadPupils();
+          // Re-apply filters
+          filterPupils();
         }, 800);
       }
     } catch (err) {
