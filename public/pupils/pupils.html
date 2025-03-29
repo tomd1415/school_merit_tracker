@@ -56,7 +56,7 @@
   </main>
   
   <!-- Edit Modal -->
-  <div id="editModal" class="modal" style="display: none;">
+  <div id="editModal" class="modal">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
       <h2>Edit Pupil</h2>
@@ -78,7 +78,7 @@
           <label for="editMerits">Merits:</label>
           <input type="number" id="editMerits" min="0" required />
         </div>
-        <div id="editModalFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div id="editModalFeedback" class="feedback"></div>
         <div class="form-actions">
           <button type="submit" class="submit-btn">Save Changes</button>
           <button type="button" id="cancelEditBtn" class="cancel-btn">Cancel</button>
@@ -88,7 +88,7 @@
   </div>
 
   <!-- Add Pupil Modal -->
-  <div id="addPupilModal" class="modal" style="display: none;">
+  <div id="addPupilModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" id="closeAddPupilModal">&times;</span>
       <h2>Add New Pupil</h2>
@@ -107,7 +107,7 @@
             <!-- Populated by JavaScript from formsData -->
           </select>
         </div>
-        <div id="addPupilFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div id="addPupilFeedback" class="feedback"></div>
         <div class="form-actions">
           <button type="submit" class="submit-btn">Add Pupil</button>
           <button type="button" id="cancelAddPupilBtn" class="cancel-btn">Cancel</button>
@@ -117,7 +117,7 @@
   </div>
 
   <!-- Add Form Modal -->
-  <div id="addFormModal" class="modal" style="display: none;">
+  <div id="addFormModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" id="closeAddFormModal">&times;</span>
       <h2>Add New Form</h2>
@@ -134,7 +134,7 @@
           <label for="addFormYearGroup">Year Group:</label>
           <input type="text" id="addFormYearGroup" />
         </div>
-        <div id="addFormFeedback" class="feedback" style="color:var(--danger);"></div>
+        <div id="addFormFeedback" class="feedback"></div>
         <div class="form-actions">
           <button type="submit" class="submit-btn">Add Form</button>
           <button type="button" id="cancelAddFormBtn" class="cancel-btn">Cancel</button>

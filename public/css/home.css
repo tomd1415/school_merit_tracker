@@ -1,0 +1,57 @@
+/* home.css - Styles for the home page */
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.links a {
+  display: inline-block;
+  padding: 15px 30px;
+  border-radius: var(--border-radius);
+  background-color: var(--primary);
+  color: var(--white);
+  text-decoration: none;
+  font-size: 18px;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+}
+
+.links a:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+#signOutBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--white);
+}
+
+#signOutBtn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  .links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .links a {
+    text-align: center;
+  }
+  
+  #signOutBtn {
+    position: static;
+    margin: var(--spacing-md) auto;
+    display: block;
+  }
+} 

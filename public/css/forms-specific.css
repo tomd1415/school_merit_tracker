@@ -66,27 +66,24 @@ section h2 {
 
 /* Error box for listings */
 .error-box {
+  display: none;
   margin-top: var(--spacing-lg);
-  background-color: rgba(220, 53, 69, 0.1);
   padding: var(--spacing-md);
-  border-radius: var(--border-radius);
+  background-color: rgba(220, 53, 69, 0.1);
   border: 1px solid var(--danger);
+  border-radius: var(--border-radius);
 }
 
 .error-box h3 {
-  margin-top: 0;
   color: var(--danger);
-  font-size: 1.1rem;
+  margin-top: 0;
   margin-bottom: var(--spacing-sm);
+  font-size: 1.1rem;
 }
 
 .error-box ul {
   margin: 0;
-  padding-left: var(--spacing-lg);
-}
-
-.error-box li {
-  margin-bottom: var(--spacing-sm);
+  padding-left: var(--spacing-md);
 }
 
 /* Responsive adjustments */
