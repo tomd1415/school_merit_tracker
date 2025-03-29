@@ -2,41 +2,84 @@
 
 const path = require('path');
 
+// Show the PIN entry page
 exports.showPinPage = (req, res) => {
-  // Render the numeric PIN entry page
-  res.sendFile(path.join(__dirname, '..', 'public', 'pinLogin', 'pinLogin.html'));
+  res.redirect(`/?showLogin=true&target=${encodeURIComponent(req.query.target || '')}`);
 };
 
+// Check the PIN
 exports.checkPin = (req, res) => {
-  const purchasePin = process.env.PURCHASE_PIN;
-  const fullPin = process.env.FULL_PIN;
-  const enteredPin = req.body.pin;
-
-  if (!enteredPin) {
-    return res.status(400).send('No PIN entered.');
+  const { pin, redirect } = req.body;
+  const targetUrl = redirect || '/';
+  
+  // Validate PIN is provided
+  if (!pin) {
+    return res.status(400).send('PIN is required');
   }
-
-  if (enteredPin === purchasePin) {
+  
+  // Get the PINs from environment variables
+  const purchasePin = process.env.PURCHASE_PIN || '1234';
+  const fullPin = process.env.FULL_PIN || '5678';
+  
+  // Check if PIN matches one of the valid PINs
+  if (pin === purchasePin) {
+    // Set purchase access for the session
     req.session.userRole = 'purchase';
-    // Go directly to the purchase page, or redirect to home
-    return res.redirect('/purchase');
-  } else if (enteredPin === fullPin) {
+    
+    // Return a JSON response for API requests
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ 
+        success: true, 
+        role: 'purchase', 
+        redirect: targetUrl 
+      });
+    }
+    
+    // Redirect to target URL or home
+    return res.redirect(303, decodeURIComponent(targetUrl));
+  } else if (pin === fullPin) {
+    // Set full access for the session
     req.session.userRole = 'full';
-    // Could redirect to a main dashboard or anywhere
-    return res.redirect('/');
+    
+    // Return a JSON response for API requests
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ 
+        success: true, 
+        role: 'full', 
+        redirect: targetUrl 
+      });
+    }
+    
+    // Redirect to target URL or home
+    return res.redirect(303, decodeURIComponent(targetUrl));
   } else {
-    // Invalid
-    return res.send(`
-      <h1>Incorrect PIN</h1>
-      <p><a href="/enter-pin">Try again</a></p>
-    `);
+    // Invalid PIN
+    
+    // Return a JSON response for API requests
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ 
+        success: false, 
+        message: 'Invalid PIN',
+        redirect: `/?showLogin=true&loginError=true&target=${encodeURIComponent(targetUrl)}` 
+      });
+    }
+    
+    // Redirect back to home with error flag and preserve the target
+    return res.redirect(303, `/?showLogin=true&loginError=true&target=${encodeURIComponent(targetUrl)}`);
   }
 };
 
+// Handle logout
 exports.logout = (req, res) => {
-  req.session.destroy(() => {
-    // Wipe out the session and redirect
-    res.redirect('/enter-pin');
+  // Clear the session
+  req.session.destroy(err => {    
+    // Return a JSON response for API requests
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ success: true });
+    }
+    
+    // Redirect to home
+    res.redirect('/');
   });
 };
 

@@ -1,57 +1,119 @@
 /* home.css - Styles for the home page */
 
-.links {
+/* Header button styling */
+.header-buttons {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
+  margin-left: auto;
 }
 
-.links a {
-  display: inline-block;
-  padding: 15px 30px;
-  border-radius: var(--border-radius);
-  background-color: var(--primary);
-  color: var(--white);
-  text-decoration: none;
-  font-size: 18px;
-  transition: var(--transition);
+/* Welcome section */
+.welcome-section {
+  text-align: center;
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-xl);
+  background-color: var(--light);
+  border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow);
 }
 
-.links a:hover {
-  background-color: var(--primary-light);
-  transform: translateY(-2px);
+.welcome-section h2 {
+  color: var(--primary);
+  font-size: 2rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.welcome-section p {
+  color: var(--dark);
+  font-size: 1.2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Feature grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.feature-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
   box-shadow: var(--shadow-lg);
 }
 
-#signOutBtn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.feature-card h3 {
+  color: var(--primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.feature-card p {
+  color: var(--gray);
+  margin-bottom: var(--spacing-md);
+  flex-grow: 1;
+}
+
+.feature-link {
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--primary);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.feature-link:hover {
+  background-color: var(--primary-light);
+}
+
+/* Footer styling */
+footer {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background-color: var(--primary-dark);
   color: var(--white);
 }
 
-#signOutBtn:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .links {
-    flex-direction: column;
-    align-items: stretch;
+  .feature-grid {
+    grid-template-columns: 1fr;
   }
   
-  .links a {
-    text-align: center;
-  }
-  
-  #signOutBtn {
+  .header-buttons {
     position: static;
-    margin: var(--spacing-md) auto;
-    display: block;
+    margin: var(--spacing-md) 0 0 0;
+    justify-content: center;
+  }
+  
+  .welcome-section {
+    padding: var(--spacing-md);
+  }
+  
+  .welcome-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .welcome-section p {
+    font-size: 1rem;
   }
 } 

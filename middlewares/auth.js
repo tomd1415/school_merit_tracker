@@ -1,25 +1,24 @@
 // middlewares/auth.js
 
-// Purchase Access: userRole can be 'purchase' or 'full'
+// Middleware to require purchase access level for routes
 exports.requirePurchaseAccess = (req, res, next) => {
-  if (!req.session.userRole) {
-    return res.redirect('/enter-pin');
-  }
   if (req.session.userRole === 'purchase' || req.session.userRole === 'full') {
-    return next();
+    return next(); // User has required access level
   }
-  // If they have some other role, or none, block
-  return res.redirect('/enter-pin');
+  
+  // User not logged in, redirect to login page with the target URL
+  const targetUrl = encodeURIComponent(req.originalUrl);
+  res.redirect(303, `/enter-pin?target=${targetUrl}`);
 };
 
-// Full Access: userRole must be 'full'
+// Middleware to require full access level for routes
 exports.requireFullAccess = (req, res, next) => {
-  if (!req.session.userRole) {
-    return res.redirect('/enter-pin');
-  }
   if (req.session.userRole === 'full') {
-    return next();
+    return next(); // User has required access level
   }
-  return res.status(403).send('You do not have permission to access this page.');
+  
+  // User not logged in, redirect to login page with the target URL
+  const targetUrl = encodeURIComponent(req.originalUrl);
+  res.redirect(303, `/enter-pin?target=${targetUrl}`);
 };
 

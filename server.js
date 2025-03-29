@@ -25,10 +25,13 @@ app.use(session({
   }
 }));
 
+// Set up view engine for rendering dynamic content
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // Serve all files in the public folder (CSS, JS, images, HTML, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
-console.log('Database Host:', process.env.DB_HOST);
 // Import routes
 const pupilRoutes = require('./routes/pupilRoutes');
 
@@ -47,10 +50,10 @@ app.use('/upload/csv', csvRoutes);
 app.use('/purchase', purchaseRoutes);
 app.use('/', pinRoutes);  // or app.use(pinRoutes);
 
-// Example of a default route to redirect or show a home page
+// Homepage route - serve static HTML
 app.get('/', (req, res) => {
-  // Could send a landing page, or redirect to /pupils, etc.
-  res.redirect('/pupils');
+  // Serve the static index.html file
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server
