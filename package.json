@@ -1,9 +1,14 @@
 {
   "name": "school_merit_tracker",
   "version": "1.0.0",
+  "type": "module",
   "description": "The School merit tracker to track pupils remaining merits after buying rewards",
   "main": "server.js",
   "scripts": {
+    "test:api": "node test/apiCheck.js",
+    "test:smoke": "bash test/smokeTest.sh",
+    "test:db": "bash test/runDbChecks.sh",
+    "test:all": "bash test/runAllChecks.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
@@ -18,13 +23,16 @@
   },
   "homepage": "https://github.com/tomd1415/school_merit_tracker#readme",
   "dependencies": {
+    "axios": "^1.9.0",
     "body-parser": "^1.20.3",
     "csv-parser": "^3.2.0",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "form-data": "^4.0.2",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.10.1",
     "pg": "^8.13.3"
   }
