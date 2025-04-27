@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cancelPurchaseBtn.disabled = true;
       
       const res = await fetch(`/purchase/cancel/${currentPurchaseId}`, {
-        method: 'POST'
+        method: 'DELETE'
       });
       
       if (!res.ok) {
