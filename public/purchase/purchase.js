@@ -101,6 +101,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+/**
+ * Fetch the up-to-date remaining-merits for a pupil by name.
+ * @param {number} pupilId
+ * @param {string} pupilName  // e.g. "Alice Smith"
+ * @returns {Promise<number|null>}  remaining merits, or null on error
+ */
+async function fetchUpdatedMerits(pupilId, pupilName) {
+  try {
+    const res = await fetch(
+      `/purchase/searchPupil?query=${encodeURIComponent(pupilName)}`
+    );
+    if (!res.ok) throw new Error('Search failed');
+    const pupils = await res.json();
+    const p = pupils.find(x => x.pupil_id === pupilId);
+    return p ? p.merits : null;
+  } catch (err) {
+    console.error('Error fetching updated merits:', err);
+    return null;
+  }
+}
+
+
   // 6) Load Prizes from server
   async function loadPrizes() {
     try {
@@ -310,69 +332,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 12) Cancel Purchase
-  cancelPurchaseBtn.addEventListener('click', async () => {
-    if (!currentPurchaseId) {
-      hideModal(confirmationModal);
-      return;
-    }
+ cancelPurchaseBtn.addEventListener('click', async () => {
+  if (!currentPurchaseId) {
+    hideModal(confirmationModal);
+    return;
+  }
 
-    try {
-      cancelPurchaseBtn.textContent = "Canceling...";
-      cancelPurchaseBtn.disabled = true;
-      
-      const res = await fetch(`/purchase/cancel/${currentPurchaseId}`, {
-        method: 'DELETE'
-      });
-      
-      if (!res.ok) {
-        throw new Error('Failed to cancel purchase');
-      }
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        confirmationMessage.innerHTML = `<p>Purchase cancelled successfully.</p>`;
-        
-        // If the selected sidebar pupil is the one we just canceled for, update their merits
-        if (sidebarSelectedPupil && sidebarSelectedPupil.pupil_id === currentPupilId) {
-          const updatedMerits = await fetchUpdatedMeritCount(currentPupilId);
-          if (updatedMerits !== null) {
-            sidebarSelectedPupil.merits = updatedMerits;
-            selectSidebarPupil(sidebarSelectedPupil);
-          }
-        }
-        
-        // Update recent pupils list if the pupil is there
-        for (let i = 0; i < recentPupils.length; i++) {
-          if (recentPupils[i].pupil_id === currentPupilId) {
-            const updatedMerits = await fetchUpdatedMeritCount(currentPupilId);
-            if (updatedMerits !== null) {
-              recentPupils[i].merits = updatedMerits;
-            }
-            break;
-          }
-        }
-      } else {
-        confirmationMessage.innerHTML = `<p style="color:red">Error: ${data.error || 'Failed to cancel purchase'}</p>`;
-      }
-    } catch (err) {
-      console.error('Error cancelling purchase:', err);
-      confirmationMessage.innerHTML = `<p style="color:red">Error: Could not cancel purchase</p>`;
-    } finally {
-      cancelPurchaseBtn.textContent = "Cancel Purchase";
-      cancelPurchaseBtn.disabled = false;
-      
-      // Hide the cancel button after cancel operation
-      cancelPurchaseBtn.style.display = 'none';
-      
-      // Auto-close after a few seconds
-      setTimeout(() => {
-        hideModal(confirmationModal);
-        cancelPurchaseBtn.style.display = 'inline-block'; // Restore for next time
-      }, 3000);
-    }
-  });
+  try {
+    cancelPurchaseBtn.textContent = "Canceling...";
+    cancelPurchaseBtn.disabled = true;
 
+    const res = await fetch(`/purchase/cancel/${currentPurchaseId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to cancel purchase');
+    const data = await res.json();
+
+    if (data.success) {
+      confirmationMessage.innerHTML = `<p>Purchase cancelled successfully.</p>`;
+
+      // —— NEW CODE: update the sidebar display for the selected pupil ——
+      if (sidebarSelectedPupil &&
+          sidebarSelectedPupil.pupil_id === currentPupilId) {
+        const updated = await fetchUpdatedMerits(currentPupilId, currentPupilName);
+        if (updated !== null) {
+          sidebarSelectedPupil.merits = updated;
+          selectSidebarPupil(sidebarSelectedPupil);
+        }
+      }
+      // — end new code —
+
+    } else {
+      confirmationMessage.innerHTML =
+        `<p style="color:red">Error: ${data.error}</p>`;
+    }
+  } catch (err) {
+    console.error('Error cancelling purchase:', err);
+    confirmationMessage.innerHTML =
+      `<p style="color:red">Error: Could not cancel purchase</p>`;
+  } finally {
+    cancelPurchaseBtn.textContent = "Cancel Purchase";
+    cancelPurchaseBtn.disabled = false;
+  }
+});
+ 
   // 13) Update pupil merit count in UI elements
   function updatePupilMeritCount(pupilId, newMeritCount) {
     // Update in recent pupils list
