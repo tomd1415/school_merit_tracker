@@ -269,6 +269,9 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
           for <span class="highlight">${pupilName}</span>.</p>
           <p style="margin-top:10px;">Remaining merits: <span class="highlight">${data.newRemaining}</span></p>`;
         
+        // Show the cancel button for new purchases
+        cancelPurchaseBtn.style.display = 'block';
+        
         hideModal(pupilModal);
         showModal(confirmationModal);
 
@@ -340,7 +343,6 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
 
   try {
     cancelPurchaseBtn.textContent = "Canceling...";
-    cancelPurchaseBtn.disabled = true;
 
     const res = await fetch(`/purchase/cancel/${currentPurchaseId}`, {
       method: 'DELETE'
@@ -350,7 +352,10 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
 
     if (data.success) {
       confirmationMessage.innerHTML = `<p>Purchase cancelled successfully.</p>`;
-
+      
+      // Hide the cancel button once purchase is cancelled
+      cancelPurchaseBtn.style.display = 'none';
+      
       // —— NEW CODE: update the sidebar display for the selected pupil ——
       if (sidebarSelectedPupil &&
           sidebarSelectedPupil.pupil_id === currentPupilId) {
@@ -372,7 +377,6 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
       `<p style="color:red">Error: Could not cancel purchase</p>`;
   } finally {
     cancelPurchaseBtn.textContent = "Cancel Purchase";
-    cancelPurchaseBtn.disabled = false;
   }
 });
  
