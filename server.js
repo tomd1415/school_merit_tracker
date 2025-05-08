@@ -1,5 +1,6 @@
 // server.js
 require('dotenv').config();
+require('./schedulers/summaryScheduler')
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');

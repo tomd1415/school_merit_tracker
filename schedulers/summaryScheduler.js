@@ -1,4 +1,5 @@
 // schedulers/summaryScheduler.js
+require('dotenv').config();
 const cron = require('node-cron');
 const { sendWeeklySummary } = require('../services/emailService');
 
