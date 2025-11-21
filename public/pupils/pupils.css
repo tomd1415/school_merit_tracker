@@ -136,6 +136,10 @@ td.remaining_merits {
   background-color: rgba(220, 53, 69, 0.1);
 }
 
+.transaction-collected {
+  background-color: rgba(40, 167, 69, 0.12);
+}
+
 .transaction-date {
   font-weight: 500;
   color: var(--primary-dark);
@@ -156,6 +160,11 @@ td.remaining_merits {
 .transaction-canceled .transaction-status {
   background-color: rgba(220, 53, 69, 0.2);
   color: var(--danger);
+}
+
+.transaction-collected .transaction-status {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: var(--success);
 }
 
 .transaction-content {

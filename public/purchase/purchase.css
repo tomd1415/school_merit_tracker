@@ -153,6 +153,7 @@
   flex-grow: 1;
   align-items: center;
   justify-content: center;
+  gap: 6px;
 }
 
 .prize-card h3 {
@@ -169,6 +170,32 @@
   color: var(--primary-dark);
   display: block;
   text-align: center;
+}
+
+.stock-badge {
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background-color: rgba(40, 167, 69, 0.15);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.stock-badge.stock-empty {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: var(--danger);
+}
+
+.prize-card.out-of-stock {
+  opacity: 0.6;
+  filter: grayscale(0.2);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.prize-card.out-of-stock:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Pupil search styling (sidebar and modal) */

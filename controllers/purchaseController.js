@@ -11,10 +11,17 @@ exports.showPurchasePage = (req, res) => {
 exports.getAllPrizes = async (req, res) => {
   try {
     const query = `
-      SELECT prize_id, description, cost_merits, cost_money, image_path
-      FROM prizes
-      WHERE active = TRUE
-      ORDER BY prize_id;
+      SELECT 
+        p.prize_id, 
+        p.description, 
+        p.cost_merits, 
+        p.cost_money, 
+        p.image_path,
+        COALESCE(ps.current_stock, 0) AS current_stock
+      FROM prizes p
+      LEFT JOIN prize_stock ps ON p.prize_id = ps.prize_id
+      WHERE p.active = TRUE
+      ORDER BY p.prize_id;
     `;
     const result = await pool.query(query);
     res.json(result.rows);
@@ -34,21 +41,23 @@ exports.searchPupil = async (req, res) => {
       return res.json([]); 
     }
 
-    // Use the view, returning "remaining_merits" 
-    // Rename "remaining_merits" as "merits" if you want the front-end 
-    // to keep using "merits" consistently.
     const sql = `
       SELECT 
-        pupil_id,
-        first_name,
-        last_name,
-        remaining_merits AS merits
-      FROM pupil_remaining_merits
+        p.pupil_id,
+        p.first_name,
+        p.last_name,
+        p.form_id,
+        f.form_name,
+        f.year_group,
+        pr.remaining_merits AS merits
+      FROM pupil_remaining_merits pr
+      JOIN pupils p ON pr.pupil_id = p.pupil_id
+      JOIN form f ON p.form_id = f.form_id
       WHERE 
-        LOWER(first_name) LIKE LOWER($1)
-        OR LOWER(last_name) LIKE LOWER($1)
-        OR LOWER(CONCAT(first_name, ' ', last_name)) LIKE LOWER($1)
-      ORDER BY last_name, first_name
+        LOWER(p.first_name) LIKE LOWER($1)
+        OR LOWER(p.last_name) LIKE LOWER($1)
+        OR LOWER(CONCAT(p.first_name, ' ', p.last_name)) LIKE LOWER($1)
+      ORDER BY p.last_name, p.first_name
       LIMIT 10;
     `;
     const likePattern = `%${query}%`;
@@ -67,16 +76,26 @@ exports.createPurchase = async (req, res) => {
   try {
     const { prize_id, pupil_id } = req.body;
 
-    // 1) Get the prize cost
+    // 1) Get the prize cost and current stock position
     const prizeCheck = await pool.query(`
-      SELECT cost_merits
-      FROM prizes
-      WHERE prize_id = $1 AND active = TRUE
+      SELECT 
+        p.cost_merits,
+        (p.total_stocked_ever + p.stock_adjustment - COUNT(pu.purchase_id)) AS current_stock
+      FROM prizes p
+      LEFT JOIN purchase pu
+        ON p.prize_id = pu.prize_id
+       AND pu.active = TRUE
+      WHERE p.prize_id = $1 AND p.active = TRUE
+      GROUP BY p.prize_id, p.cost_merits, p.total_stocked_ever, p.stock_adjustment
     `, [prize_id]);
     if (prizeCheck.rowCount === 0) {
       return res.status(400).json({ error: 'Invalid or inactive prize' });
     }
-    const cost_merits = prizeCheck.rows[0].cost_merits;
+    const { cost_merits, current_stock } = prizeCheck.rows[0];
+
+    if ((current_stock ?? 0) <= 0) {
+      return res.status(400).json({ error: 'This prize is out of stock.' });
+    }
 
     // 2) Check pupil's current *remaining* merits using the view
     //    pupil_remaining_merits has "pupil_id" and "remaining_merits"
@@ -99,19 +118,20 @@ exports.createPurchase = async (req, res) => {
 
     // 4) Insert into purchase (do NOT update pupils.merits)
     const insertResult = await pool.query(`
-      INSERT INTO purchase (pupil_id, prize_id, merit_cost_at_time, date, active)
-      VALUES ($1, $2, $3, NOW(), TRUE)
-      RETURNING purchase_id
+      INSERT INTO purchase (pupil_id, prize_id, merit_cost_at_time, date, status, active)
+      VALUES ($1, $2, $3, NOW(), 'pending', TRUE)
+      RETURNING purchase_id, status
     `, [pupil_id, prize_id, cost_merits]);
 
     // This is the newly created purchase ID
-    const newPurchaseId = insertResult.rows[0].purchase_id;
+    const { purchase_id: newPurchaseId, status } = insertResult.rows[0];
 
     // Return both newRemaining and newPurchaseId so front-end can track it
     return res.json({ 
       success: true, 
       newRemaining: currentRemaining - cost_merits,
-      newPurchaseId
+      newPurchaseId,
+      status
     });
   } catch (err) {
     console.error('Error creating purchase:', err);
@@ -127,7 +147,7 @@ exports.cancelPurchase = async (req, res) => {
 
     // First, get the purchase details to know which pupil and prize were involved
     const purchaseResult = await pool.query(`
-      SELECT pupil_id, prize_id, merit_cost_at_time
+      SELECT pupil_id, prize_id, merit_cost_at_time, status, active
       FROM purchase
       WHERE purchase_id = $1
     `, [purchaseId]);
@@ -137,18 +157,32 @@ exports.cancelPurchase = async (req, res) => {
     }
 
     const purchase = purchaseResult.rows[0];
-    const { pupil_id, merit_cost_at_time } = purchase;
+    const { pupil_id, status } = purchase;
 
-    // Delete or deactivate the purchase
+    // If already refunded, just return the latest merit balance
+    if (status === 'refunded') {
+      const meritResult = await pool.query(`
+        SELECT remaining_merits
+        FROM pupil_remaining_merits
+        WHERE pupil_id = $1
+      `, [pupil_id]);
+      const updatedMerits = meritResult.rowCount > 0 ? meritResult.rows[0].remaining_merits : null;
+      return res.json({
+        success: true,
+        message: 'Purchase already refunded',
+        updatedMerits
+      });
+    }
+
+    // Mark as refunded and inactive, record when it happened
     const result = await pool.query(`
-      DELETE FROM purchase
+      UPDATE purchase
+      SET status = 'refunded',
+          active = FALSE,
+          fulfilled_at = NOW()
       WHERE purchase_id = $1
       RETURNING purchase_id
     `, [purchaseId]);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Purchase not found' });
-    }
 
     // After canceling, get the updated remaining merits for the pupil
     const meritResult = await pool.query(`

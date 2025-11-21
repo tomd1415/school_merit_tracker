@@ -137,8 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
       prizeContainer.innerHTML = '';
 
       prizes.forEach((prize, index) => {
+        const currentStock = Number(prize.current_stock ?? 0);
+        const outOfStock = currentStock <= 0;
+
         const card = document.createElement('div');
-        card.className = 'prize-card';
+        card.className = `prize-card${outOfStock ? ' out-of-stock' : ''}`;
         card.style.animationDelay = `${index * 0.05}s`;
 
         card.innerHTML = `
@@ -146,10 +149,17 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="prize-card-content">
             <h3>${prize.description}</h3>
             <span class="prize-cost">${prize.cost_merits}</span>
+            <div class="stock-badge ${outOfStock ? 'stock-empty' : ''}">
+              ${outOfStock ? 'Out of stock' : `${currentStock} in stock`}
+            </div>
           </div>
         `;
 
         card.addEventListener('click', () => {
+          if (outOfStock) {
+            alert('This prize is out of stock.');
+            return;
+          }
           if (sidebarSelectedPupil) {
             // If a pupil is selected in the sidebar, proceed with purchase
             handlePurchase(

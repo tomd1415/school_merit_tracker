@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders & Fulfilment</title>
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/modal.css" />
+  <link rel="stylesheet" href="orders.css" />
+</head>
+<body>
+  <header>
+    <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
+    <div>
+      <h1>Orders & Fulfilment</h1>
+      <p style="margin: 4px 0 0; opacity: 0.85;">Track pupil prize orders, mark collections, and issue refunds.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="card controls-card">
+      <div class="mode-row">
+        <div class="toggle-group">
+          <label for="modeToggle">Current unfulfilled</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="modeToggle" />
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="mode-label">All orders</span>
+          <span class="muted-text" id="modeHint">Showing only pending orders.</span>
+        </div>
+        <div class="control-actions">
+          <button id="refreshBtn" class="ghost-btn">Refresh</button>
+          <button id="resetFiltersBtn" class="cancel-btn">Reset Filters</button>
+        </div>
+      </div>
+
+      <div class="filter-grid">
+        <div class="filter-field">
+          <label for="yearFilter">Year group</label>
+          <select id="yearFilter">
+            <option value="all">All year groups</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="formFilter">Form</label>
+          <select id="formFilter">
+            <option value="all">All forms</option>
+          </select>
+        </div>
+        <div class="filter-field pupil-filter">
+          <label for="pupilSearchInput">Pupil</label>
+          <div class="search-wrapper">
+            <input type="text" id="pupilSearchInput" placeholder="Search pupil by name..." autocomplete="off" />
+            <div id="pupilSearchResults" class="autocomplete-results"></div>
+          </div>
+          <div id="selectedPupilPill" class="pill" style="display:none;">
+            <span id="selectedPupilName"></span>
+            <button type="button" id="clearPupilBtn" aria-label="Remove pupil filter">&times;</button>
+          </div>
+        </div>
+        <div class="filter-field date-field">
+          <label for="startDateInput">Start date</label>
+          <input type="date" id="startDateInput" />
+        </div>
+        <div class="filter-field date-field">
+          <label for="endDateInput">End date</label>
+          <input type="date" id="endDateInput" />
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card pending">
+        <span class="summary-label">Pending</span>
+        <span class="summary-value" id="pendingCount">0</span>
+      </div>
+      <div class="summary-card collected">
+        <span class="summary-label">Collected</span>
+        <span class="summary-value" id="collectedCount">0</span>
+      </div>
+      <div class="summary-card refunded">
+        <span class="summary-label">Refunded</span>
+        <span class="summary-value" id="refundedCount">0</span>
+      </div>
+      <div class="summary-card total">
+        <span class="summary-label">Total Shown</span>
+        <span class="summary-value" id="totalCount">0</span>
+      </div>
+    </section>
+
+    <section class="card orders-card">
+      <div class="orders-header">
+        <div>
+          <h2>Orders</h2>
+          <p class="muted-text" id="ordersSubtitle">Loading...</p>
+        </div>
+        <div class="muted-text" id="lastUpdated"></div>
+      </div>
+      <div class="table-responsive">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Pupil</th>
+              <th>Prize</th>
+              <th>Placed</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" class="muted-text" style="text-align:center;">Loading orders...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="orders.js"></script>
+  <script src="/commonMenu.js"></script>
+</body>
+</html>

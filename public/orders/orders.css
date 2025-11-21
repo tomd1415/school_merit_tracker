@@ -1,0 +1,327 @@
+/* public/orders/orders.css */
+
+.controls-card {
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.mode-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.mode-label {
+  font-weight: 600;
+}
+
+.muted-text {
+  color: var(--gray);
+  font-size: 0.95rem;
+}
+
+.control-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-field label {
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.filter-field select,
+.filter-field input[type="date"],
+#pupilSearchInput {
+  padding: 10px 12px;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  transition: var(--transition);
+}
+
+.filter-field select:focus,
+.filter-field input[type="date"]:focus,
+#pupilSearchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 58, 105, 0.15);
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.autocomplete-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: none;
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 5;
+}
+
+.autocomplete-item {
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.autocomplete-item:hover {
+  background-color: rgba(0, 58, 105, 0.08);
+}
+
+.autocomplete-name {
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.autocomplete-meta {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 58, 105, 0.08);
+  color: var(--primary-dark);
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.pill button {
+  background: transparent;
+  color: var(--primary-dark);
+  box-shadow: none;
+  padding: 4px 8px;
+}
+
+.pill button:hover {
+  background-color: rgba(0, 58, 105, 0.15);
+}
+
+.date-field {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.date-field.disabled {
+  opacity: 0.5;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.summary-card {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  background-color: var(--white);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-card .summary-label {
+  font-size: 0.95rem;
+  color: var(--gray);
+}
+
+.summary-card .summary-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.summary-card.pending .summary-value {
+  color: var(--primary);
+}
+
+.summary-card.collected .summary-value {
+  color: var(--success);
+}
+
+.summary-card.refunded .summary-value {
+  color: var(--danger);
+}
+
+.summary-card.total .summary-value {
+  color: var(--dark);
+}
+
+.orders-card {
+  padding: var(--spacing-lg);
+}
+
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+#ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#ordersTable th, #ordersTable td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-light);
+  vertical-align: middle;
+}
+
+#ordersTable th {
+  background-color: rgba(0, 58, 105, 0.05);
+  color: var(--primary-dark);
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.pupil-cell .name {
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.pupil-cell .meta {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.prize-cell .prize-name {
+  font-weight: 600;
+}
+
+.prize-cell .cost {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.date-cell .time {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.status-pending {
+  background-color: rgba(0, 123, 255, 0.15);
+  color: var(--primary);
+}
+
+.status-collected {
+  background-color: rgba(40, 167, 69, 0.15);
+  color: var(--success);
+}
+
+.status-refunded {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: var(--danger);
+}
+
+.actions-cell {
+  vertical-align: middle;
+}
+
+.actions-wrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 210px;
+}
+
+.action-btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.ghost-btn {
+  background-color: var(--white);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  box-shadow: none;
+}
+
+.ghost-btn:hover {
+  background-color: rgba(0, 58, 105, 0.08);
+}
+
+.danger-outline {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  background-color: var(--white);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-lg);
+  color: var(--gray);
+}
+
+@media (max-width: 768px) {
+  .mode-row {
+    align-items: flex-start;
+  }
+
+  .actions-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    min-width: auto;
+  }
+}

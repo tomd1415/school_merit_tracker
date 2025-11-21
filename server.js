@@ -10,6 +10,7 @@ const prizeRoutes = require('./routes/prizeRoutes');
 const csvRoutes = require('./routes/csvRoutes');
 const purchaseRoutes = require('./routes/purchaseRoutes');
 const pinRoutes = require('./routes/pinRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 const { requireFullAccess } = require('./middlewares/auth');
 
 // Body Parser
@@ -49,6 +50,7 @@ app.use('/pupils', pupilRoutes);
 app.use('/prizes', prizeRoutes);
 app.use('/upload/csv', csvRoutes);
 app.use('/purchase', purchaseRoutes);
+app.use('/orders', orderRoutes);
 app.use('/', pinRoutes);  // or app.use(pinRoutes);
 
 // Homepage route - serve static HTML
@@ -62,4 +64,3 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
-

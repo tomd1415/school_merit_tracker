@@ -258,13 +258,23 @@ function displayTransactions(transactions, container) {
     const card = document.createElement('div');
     card.className = 'transaction-card';
     
-    // Transaction status (active or canceled)
-    const statusClass = transaction.active ? 'transaction-active' : 'transaction-canceled';
+    // Transaction status (pending, collected, refunded)
+    const normalizedStatus = (transaction.status || '').toLowerCase();
+    let statusLabel = 'Pending';
+    let statusClass = 'transaction-active';
+
+    if (normalizedStatus === 'collected') {
+      statusLabel = 'Collected';
+      statusClass = 'transaction-collected';
+    } else if (normalizedStatus === 'refunded' || transaction.active === false) {
+      statusLabel = 'Refunded';
+      statusClass = 'transaction-canceled';
+    }
     
     card.innerHTML = `
       <div class="transaction-header ${statusClass}">
         <div class="transaction-date">${formattedDate} at ${timeString}</div>
-        <div class="transaction-status">${transaction.active ? 'Active' : 'Canceled'}</div>
+        <div class="transaction-status">${statusLabel}</div>
       </div>
       <div class="transaction-content">
         <div class="transaction-image">

@@ -58,6 +58,8 @@ CREATE TABLE purchase (
     prize_id           INTEGER   NOT NULL,
     merit_cost_at_time INTEGER   NOT NULL CHECK (merit_cost_at_time >= 0),
     date               TIMESTAMP NOT NULL,
+    status             TEXT      NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','collected','refunded')),
+    fulfilled_at       TIMESTAMP NULL,
     active             BOOLEAN   NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_purchase_pupil
         FOREIGN KEY (pupil_id)

@@ -121,6 +121,8 @@ exports.getPupilTransactions = async (req, res) => {
         pu.date,
         pu.merit_cost_at_time,
         pu.active,
+        COALESCE(pu.status, 'pending') AS status,
+        pu.fulfilled_at,
         pr.description,
         pr.image_path
       FROM purchase pu
