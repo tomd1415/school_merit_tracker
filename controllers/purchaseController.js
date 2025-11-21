@@ -90,10 +90,10 @@ exports.createPurchase = async (req, res) => {
     }
     const currentRemaining = remainCheck.rows[0].remaining_merits;
 
-    // 3) Ensure pupil has enough remaining merits
+    // 3) Ensure pupil has enough remaining APs
     if (currentRemaining < cost_merits) {
       return res.status(400).json({
-        error: `Not enough merits. Pupil has ${currentRemaining} left, needs ${cost_merits}.`
+        error: `Not enough APs. Pupil has ${currentRemaining} left, needs ${cost_merits}.`
       });
     }
 
@@ -170,4 +170,3 @@ exports.cancelPurchase = async (req, res) => {
     res.status(500).json({ error: 'Failed to cancel purchase' });
   }
 };
-

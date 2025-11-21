@@ -15,7 +15,7 @@ const menuHTML = `
       <a href="/prizes" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Manage Prizes</a>
       <a href="/purchase" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Purchase Prizes</a>
       <a href="/upload/csv/pupils" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Upload Pupils CSV</a>
-      <a href="/upload/csv/merits" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Upload Merits CSV</a>
+      <a href="/upload/csv/merits" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Upload APs CSV</a>
     </nav>
     <button id="signOutBtn" style="
       position: absolute; 

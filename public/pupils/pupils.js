@@ -6,6 +6,11 @@ let formsData = []; // to store forms for editing
 let allPupils = []; // to store all loaded pupils for filtering
 let currentTransactionPupil = null; // Store pupil for transaction modal
 
+// Replace any lingering "merit" wording in messages with "APs"
+function normalizeAPLabel(msg) {
+  return msg ? msg.replace(/merits?/gi, 'APs') : msg;
+}
+
 // Global modal functions
 function showModal(modalElement) {
   modalElement.style.display = 'flex';
@@ -269,7 +274,7 @@ function displayTransactions(transactions, container) {
         </div>
         <div class="transaction-details">
           <div class="transaction-description">${transaction.description}</div>
-          <div class="transaction-cost">${transaction.merit_cost_at_time} merits</div>
+          <div class="transaction-cost">${transaction.merit_cost_at_time} APs</div>
         </div>
       </div>
     `;
@@ -316,9 +321,9 @@ async function handleInlineEditBlur(e) {
   const row = cell.closest('tr');
   const pupil_id = row.dataset.pupilId;
 
-  // Basic validation for 'merits'
+  // Basic validation for APs
   if (field === 'merits' && isNaN(newValue)) {
-    alert('Merits must be a valid number');
+    alert('APs must be a valid number');
     // revert changes by reloading
     await loadPupils();
     // Re-apply filters
@@ -382,7 +387,7 @@ async function updatePupil(pupil_id, data) {
     const result = await response.json();
 
     if (!response.ok) {
-      alert(result.error || 'Error updating pupil');
+      alert(normalizeAPLabel(result.error) || 'Error updating pupil');
     } else {
       // Reload pupils to refresh data
       await loadPupils();
@@ -496,7 +501,7 @@ async function deletePupil(pupil_id) {
     const res = await fetch(`/pupils/delete/${pupil_id}`);
     if (!res.ok) {
       const errData = await res.json();
-      alert(errData.error || 'Failed to delete pupil.');
+      alert(normalizeAPLabel(errData.error) || 'Failed to delete pupil.');
       return;
     }
     // Successfully "deleted"
@@ -646,4 +651,3 @@ function populateAddPupilFormSelect() {
     select.appendChild(option);
   });
 }
-

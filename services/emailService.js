@@ -50,7 +50,7 @@ async function sendWeeklySummary() {
     html += `<h3>Form: ${form}</h3><ul>`;
     byForm[form].forEach(r => {
       html += `<li>${r.date.toLocaleDateString()} ${r.date.toLocaleTimeString()} — 
-                 ${r.first_name} ${r.last_name} bought “${r.description}” for ${r.merit_cost_at_time} merits</li>`;
+                 ${r.first_name} ${r.last_name} bought “${r.description}” for ${r.merit_cost_at_time} APs</li>`;
     });
     html += `</ul>`;
   }
@@ -67,4 +67,3 @@ async function sendWeeklySummary() {
 }
 
 module.exports = { sendWeeklySummary };
-

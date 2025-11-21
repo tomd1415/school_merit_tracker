@@ -9,6 +9,11 @@ let currentPrizeMerits = null; // Store the merit cost of the current purchase
 let recentPupils = []; // Store last few selected pupils for quick reuse
 let sidebarSelectedPupil = null; // Store the currently selected pupil in the sidebar
 
+// Replace any lingering "merit" wording in error messages with "APs"
+function normalizeAPLabel(msg) {
+  return msg ? msg.replace(/merits?/gi, 'APs') : msg;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // UI Elements
   const prizeContainer = document.getElementById('prizeContainer');
@@ -101,26 +106,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-/**
- * Fetch the up-to-date remaining-merits for a pupil by name.
- * @param {number} pupilId
- * @param {string} pupilName  // e.g. "Alice Smith"
- * @returns {Promise<number|null>}  remaining merits, or null on error
- */
-async function fetchUpdatedMerits(pupilId, pupilName) {
-  try {
-    const res = await fetch(
-      `/purchase/searchPupil?query=${encodeURIComponent(pupilName)}`
-    );
-    if (!res.ok) throw new Error('Search failed');
-    const pupils = await res.json();
-    const p = pupils.find(x => x.pupil_id === pupilId);
-    return p ? p.merits : null;
-  } catch (err) {
-    console.error('Error fetching updated merits:', err);
-    return null;
+  /**
+   * Fetch the up-to-date remaining-merits for a pupil by name.
+   * @param {number} pupilId
+   * @param {string} pupilName  // e.g. "Alice Smith"
+   * @returns {Promise<number|null>}  remaining merits, or null on error
+   */
+  async function fetchUpdatedMerits(pupilId, pupilName) {
+    try {
+      const res = await fetch(
+        `/purchase/searchPupil?query=${encodeURIComponent(pupilName)}`
+      );
+      if (!res.ok) throw new Error('Search failed');
+      const pupils = await res.json();
+      const p = pupils.find(x => x.pupil_id === pupilId);
+      return p ? p.merits : null;
+    } catch (err) {
+      console.error('Error fetching updated APs:', err);
+      return null;
+    }
   }
-}
 
 
   // 6) Load Prizes from server
@@ -130,12 +135,12 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
       if (!res.ok) throw new Error('Failed to load prizes');
       const prizes = await res.json();
       prizeContainer.innerHTML = '';
-      
+
       prizes.forEach((prize, index) => {
         const card = document.createElement('div');
         card.className = 'prize-card';
         card.style.animationDelay = `${index * 0.05}s`;
-        
+
         card.innerHTML = `
           <img src="${prize.image_path || '/images/default-prize.png'}" alt="${prize.description}" onerror="this.src='/images/default-prize.png'">
           <div class="prize-card-content">
@@ -143,13 +148,13 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
             <span class="prize-cost">${prize.cost_merits}</span>
           </div>
         `;
-        
+
         card.addEventListener('click', () => {
           if (sidebarSelectedPupil) {
             // If a pupil is selected in the sidebar, proceed with purchase
             handlePurchase(
-              sidebarSelectedPupil.pupil_id, 
-              `${sidebarSelectedPupil.first_name} ${sidebarSelectedPupil.last_name}`, 
+              sidebarSelectedPupil.pupil_id,
+              `${sidebarSelectedPupil.first_name} ${sidebarSelectedPupil.last_name}`,
               sidebarSelectedPupil.merits,
               prize.prize_id,
               prize.description
@@ -164,7 +169,7 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
             renderRecentPupils();
           }
         });
-        
+
         prizeContainer.appendChild(card);
       });
     } catch (err) {
@@ -177,18 +182,18 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
   async function searchPupils(query, resultsDiv, isSidebar) {
     try {
       resultsDiv.innerHTML = '<p style="text-align:center;">Searching...</p>';
-      
+
       const res = await fetch(`/purchase/searchPupil?query=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error('Failed to search pupils');
-      
+
       const pupils = await res.json();
       resultsDiv.innerHTML = '';
-      
+
       if (pupils.length === 0) {
         resultsDiv.innerHTML = '<p style="text-align:center;">No pupils found</p>';
         return;
       }
-      
+
       pupils.forEach(pupil => {
         const div = document.createElement('div');
         div.className = 'pupil-item';
@@ -206,13 +211,13 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
           // For modal, proceed with purchase
           div.addEventListener('click', () => {
             handlePurchase(
-              pupil.pupil_id, 
-              `${pupil.first_name} ${pupil.last_name}`, 
+              pupil.pupil_id,
+              `${pupil.first_name} ${pupil.last_name}`,
               pupil.merits
             );
           });
         }
-        
+
         resultsDiv.appendChild(div);
       });
     } catch (err) {
@@ -226,12 +231,12 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
     sidebarSelectedPupil = pupil;
     sidebarPupilSearchInput.value = ''; // Clear search input
     sidebarSearchResultsDiv.innerHTML = ''; // Clear search results
-    
+
     // Update the selected pupil display
     selectedPupilDisplay.innerHTML = `
       <div class="pupil-info-card">
         <div class="pupil-name-display">${pupil.first_name} ${pupil.last_name}</div>
-        <div class="merit-display">Available Merits<span class="merit-value">${pupil.merits}</span></div>
+        <div class="merit-display">Available APs<span class="merit-value">${pupil.merits}</span></div>
       </div>
     `;
   }
@@ -241,9 +246,9 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
     // Use the active prize or the one passed as parameter
     const activePrizeId = prizeId || selectedPrizeId;
     const activePrizeDesc = prizeDesc || selectedPrizeDescription;
-    
+
     if (!activePrizeId) return;
-    
+
     try {
       const res = await fetch('/purchase/create', {
         method: 'POST',
@@ -253,7 +258,8 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        alert(errorData.error || 'Error creating purchase');
+        const normalizedError = normalizeAPLabel(errorData.error);
+        alert(normalizedError || 'Error creating purchase');
         return;
       }
 
@@ -263,15 +269,15 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
         currentPupilId = pupil_id;
         currentPupilName = pupilName;
         currentPrizeMerits = data.meritCost || 0; // Store merit cost if available
-        
+
         confirmationMessage.innerHTML = `
           <p>Successfully purchased <span class="highlight">${activePrizeDesc}</span>
           for <span class="highlight">${pupilName}</span>.</p>
-          <p style="margin-top:10px;">Remaining merits: <span class="highlight">${data.newRemaining}</span></p>`;
-        
+          <p style="margin-top:10px;">Remaining APs: <span class="highlight">${data.newRemaining}</span></p>`;
+
         // Show the cancel button for new purchases
         cancelPurchaseBtn.style.display = 'block';
-        
+
         hideModal(pupilModal);
         showModal(confirmationModal);
 
@@ -282,9 +288,9 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
           last_name: pupilName.split(' ').slice(1).join(' '),
           merits: data.newRemaining
         };
-        
+
         addRecentPupil(pupilObj);
-        
+
         // If it's the sidebar-selected pupil, update the merit count
         if (sidebarSelectedPupil && sidebarSelectedPupil.pupil_id === pupil_id) {
           sidebarSelectedPupil.merits = data.newRemaining;
@@ -300,12 +306,12 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
   // 10) Render recent pupils
   function renderRecentPupils() {
     recentPupilsDiv.innerHTML = '';
-    
+
     if (recentPupils.length === 0) {
       recentPupilsDiv.innerHTML = '<p style="text-align:center;">No recent pupils</p>';
       return;
     }
-    
+
     recentPupils.forEach(pupil => {
       const div = document.createElement('div');
       div.className = 'pupil-item';
@@ -324,10 +330,10 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
   function addRecentPupil(pupil) {
     // Remove if already exists
     recentPupils = recentPupils.filter(p => p.pupil_id !== pupil.pupil_id);
-    
+
     // Add to front
     recentPupils.unshift(pupil);
-    
+
     // Limit to 5
     if (recentPupils.length > 5) {
       recentPupils.pop();
@@ -335,51 +341,51 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
   }
 
   // 12) Cancel Purchase
- cancelPurchaseBtn.addEventListener('click', async () => {
-  if (!currentPurchaseId) {
-    hideModal(confirmationModal);
-    return;
-  }
-
-  try {
-    cancelPurchaseBtn.textContent = "Canceling...";
-
-    const res = await fetch(`/purchase/cancel/${currentPurchaseId}`, {
-      method: 'DELETE'
-    });
-    if (!res.ok) throw new Error('Failed to cancel purchase');
-    const data = await res.json();
-
-    if (data.success) {
-      confirmationMessage.innerHTML = `<p>Purchase cancelled successfully.</p>`;
-      
-      // Hide the cancel button once purchase is cancelled
-      cancelPurchaseBtn.style.display = 'none';
-      
-      // —— NEW CODE: update the sidebar display for the selected pupil ——
-      if (sidebarSelectedPupil &&
-          sidebarSelectedPupil.pupil_id === currentPupilId) {
-        const updated = await fetchUpdatedMerits(currentPupilId, currentPupilName);
-        if (updated !== null) {
-          sidebarSelectedPupil.merits = updated;
-          selectSidebarPupil(sidebarSelectedPupil);
-        }
-      }
-      // — end new code —
-
-    } else {
-      confirmationMessage.innerHTML =
-        `<p style="color:red">Error: ${data.error}</p>`;
+  cancelPurchaseBtn.addEventListener('click', async () => {
+    if (!currentPurchaseId) {
+      hideModal(confirmationModal);
+      return;
     }
-  } catch (err) {
-    console.error('Error cancelling purchase:', err);
-    confirmationMessage.innerHTML =
-      `<p style="color:red">Error: Could not cancel purchase</p>`;
-  } finally {
-    cancelPurchaseBtn.textContent = "Cancel Purchase";
-  }
-});
- 
+
+    try {
+      cancelPurchaseBtn.textContent = "Canceling...";
+
+      const res = await fetch(`/purchase/cancel/${currentPurchaseId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to cancel purchase');
+      const data = await res.json();
+
+      if (data.success) {
+        confirmationMessage.innerHTML = `<p>Purchase cancelled successfully.</p>`;
+
+        // Hide the cancel button once purchase is cancelled
+        cancelPurchaseBtn.style.display = 'none';
+
+        // —— NEW CODE: update the sidebar display for the selected pupil ——
+        if (sidebarSelectedPupil &&
+          sidebarSelectedPupil.pupil_id === currentPupilId) {
+          const updated = await fetchUpdatedMerits(currentPupilId, currentPupilName);
+          if (updated !== null) {
+            sidebarSelectedPupil.merits = updated;
+            selectSidebarPupil(sidebarSelectedPupil);
+          }
+        }
+        // — end new code —
+
+      } else {
+        confirmationMessage.innerHTML =
+          `<p style="color:red">Error: ${data.error}</p>`;
+      }
+    } catch (err) {
+      console.error('Error cancelling purchase:', err);
+      confirmationMessage.innerHTML =
+        `<p style="color:red">Error: Could not cancel purchase</p>`;
+    } finally {
+      cancelPurchaseBtn.textContent = "Cancel Purchase";
+    }
+  });
+
   // 13) Update pupil merit count in UI elements
   function updatePupilMeritCount(pupilId, newMeritCount) {
     // Update in recent pupils list
@@ -399,7 +405,7 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
       const data = await res.json();
       return data.merits;
     } catch (err) {
-      console.error('Error fetching updated merits:', err);
+      console.error('Error fetching updated APs:', err);
       return null;
     }
   }
@@ -413,4 +419,3 @@ async function fetchUpdatedMerits(pupilId, pupilName) {
     }
   });
 });
-

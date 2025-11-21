@@ -151,7 +151,7 @@ exports.editPupil = async (req, res) => {
 
     merits = parseInt(merits, 10);
     if (isNaN(merits) || merits < 0) {
-      return res.status(400).json({ error: 'Merits must be a non-negative number' });
+      return res.status(400).json({ error: 'APs must be a non-negative number' });
     }
 
     // Example: If you have a separate "merits_spent" field, add that here
@@ -236,4 +236,3 @@ exports.addForm = async (req, res) => {
     res.status(500).json({ error: 'Failed to add form' });
   }
 };
-
