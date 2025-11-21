@@ -1,178 +1,91 @@
-# School Reward Site
+# School Merit Tracker
 
-The School Reward Site is a Node.js + PostgreSQL application that tracks pupil merits and allows teachers to “purchase” prizes on behalf of pupils. It’s designed for easy, tablet-friendly interaction, with a custom 6-digit PIN login flow.
-
----
-
-## 1. Overview
-
-- **Node.js + Express** server with a **PostgreSQL** backend.
-- Pupils, Prizes, and Purchases are stored in separate tables. A `pupil_remaining_merits` view calculates each pupil’s remaining merits.
-- Two PINs for authentication:
-  - **Purchase PIN** for purchase-only access.
-  - **Full PIN** for full administrative tasks.
-- Teachers can:
-  - Manage Pupils (add/edit/delete)
-  - Manage Prizes (add/edit/delete/stock)
-  - Purchase Prizes (touchscreen-friendly)
-  - Upload Pupils CSV (bulk import)
-  - Upload Merits CSV (add merits in bulk)
+A Node.js + Express + PostgreSQL app for running the school's AP reward system. Staff can manage pupils, forms, prizes and orders, sell prizes to pupils, and keep stock and fulfilment in sync. Authentication uses PIN-based roles for purchase-only or full access.
 
 ---
 
-## 2. Directory Structure
-
-- **controllers/**  
-  Houses controller logic (csvController, pinController, prizeController, pupilController, purchaseController).
-  
-- **routes/**  
-  Contains Express router files (pupilRoutes, prizeRoutes, purchaseRoutes, csvRoutes, pinRoutes) mapping endpoints to controllers.
-
-- **public/**  
-  Front-end HTML, CSS, JS for each feature/page (pupils, prizes, purchase, upload CSV, etc.).  
-  - Shared scripts like `commonMenu.js` can dynamically insert a top menu and sign-out button on most pages.
-
-- **middlewares/**  
-  Contains `auth.js` with `requireFullAccess` and `requirePurchaseAccess` for route protection.
-
-- **server.js**  
-  Main entry point for Express. Configures sessions, routes, static file serving.
-
-- **db.js**  
-  Connects to PostgreSQL using environment variables.
-
-- **create_tables.sql**  
-  Defines schema (form, pupils, prizes, purchase) and views (`prize_stock`, `pupil_remaining_merits`).
-
-- **package.json**  
-  Lists Node dependencies (express, pg, csv-parser, multer, etc.).
+## 1) What it does
+- Manage pupils (create/edit/deactivate) and forms/year groups.
+- Manage prizes (CRUD, stock adjustments, images, active flag).
+- Purchase prizes for pupils with AP checks and prize stock checks.
+- Orders & Fulfilment page to see pending/all orders, mark collected, issue refunds (returns APs), filter by year/form/pupil/date, and search pupils with autocomplete.
+- CSV upload tools for pupils and AP top-ups.
 
 ---
 
-## 3. Authentication & PINs
-
-- `.env` holds `PURCHASE_PIN` and `FULL_PIN`. Teachers enter a 6-digit PIN at `/enter-pin`.  
-- If they enter the purchase PIN, they get “purchase” role; if full PIN, “full” role.  
-- Session cookie expires after 1 hour (configurable in `server.js`).  
-- A “Sign Out” button calls `/logout`, clearing the session.
-
----
-
-## 4. Menu & Sign Out
-
-- Most pages load `commonMenu.js`, which inserts a top-centered menu and a sign-out button (top-right).
-- The Purchase page omits the main menu but still shows a sign-out button.  
-- Links in the menu:
-  - Manage Pupils
-  - Manage Prizes
-  - Purchase Prizes
-  - Upload Pupils CSV
-  - Upload Merits CSV
+## 2) Auth model
+- PIN-based session roles:
+  - `purchase` role: access purchase flow and orders.
+  - `full` role: access everything.
+- PINs come from `.env` (`PURCHASE_PIN`, `FULL_PIN`). Session is stored in memory with 1-hour expiry.
 
 ---
 
-## 5. Managing Pupils
+## 3) Data model (PostgreSQL)
+- Tables: `form`, `pupils`, `prizes`, `purchase`.
+- Key fields:
+  - `pupils.merits`: total APs available to a pupil.
+  - `prizes`: `total_stocked_ever`, `stock_adjustment`, `active`.
+  - `purchase`: `status` (`pending`, `collected`, `refunded`), `fulfilled_at`, `active` (legacy flag kept).
+- Views:
+  - `prize_stock`: total_stocked_ever + stock_adjustment - active purchases.
+  - `pupil_remaining_merits`: merits - active purchases.
 
-- Pupils can be added, edited (inline or via modal), or set inactive.  
-- CSV import (first_name, last_name, form_id) can bulk-insert new pupils.  
-- Pupils table tracks `merits` integer; the `pupil_remaining_merits` view subtracts purchased items from this total.
-
----
-
-## 6. Managing Prizes
-
-- Prizes page lists all prizes. You can add a new prize, upload an image, edit cost, etc.
-- A column for stock/stock_adjustment can be updated (planned to be made inline-editable).
-- Prizes can be deleted or set inactive. “Current Stock” can be displayed from the `prize_stock` view.
-
----
-
-## 7. Purchase Prizes
-
-- The purchase page is touchscreen-friendly. Tap a prize, then select a pupil via a search box.
-- Deducts the required merits from `pupil_remaining_merits`. If insufficient, blocks purchase.
-- A “Cancel Purchase” or “refund” feature is planned to allow reversing mistakes or changes in cost.
+**Schema upgrades**  
+Existing databases should run `migrations/20240904_purchase_status.sql` to add `status` and `fulfilled_at` to `purchase` and backfill data.
 
 ---
 
-## 8. Uploading CSVs
-
-- **`/upload/csv/pupils`**: Import new pupils with “first_name,last_name,form_id”. Duplicates are skipped.
-- **`/upload/csv/merits`**: Add merits to existing pupils in bulk with “first_name,last_name,merits”. Rows for unknown pupils appear in a “missing” list.
-
----
-
-## 9. Planned Features
-
-1. **Prize Stock**: Inline editing on the Manage Prizes page to track exact stock or use “stock_adjustment” in real time.
-2. **Pupil Self-Check**: Pupils can enter a 6-digit PIN (unique to each pupil) to see their own remaining merits.
-3. **Refund / Cost Override**: A button on Purchase to revert or modify a purchase’s cost if needed.
+## 4) Frontend pages
+- `/` Home with quick links.
+- `/pupils` Manage pupils.
+- `/forms` Manage forms/year groups.
+- `/prizes` Manage prizes (stock inline help, image upload).
+- `/purchase` Touch-friendly purchase flow (AP + stock checks, recent pupils, cancel/refund of most recent purchase).
+- `/orders` Orders & Fulfilment (pending/all toggle, date range in all mode, filters, autocomplete pupil search, mark collected, refund with AP return).
+- `/upload/csv/pupils` Bulk import pupils.
+- `/upload/csv/merits` Bulk add APs.
+- Common top menu via `public/commonMenu.js` (omits on purchase page by design).
 
 ---
 
-## 10. Installation & Setup
-
-1. **Set Up PostgreSQL**  
-   - **Install** PostgreSQL on your system.  
-   - **Create** a user and a database. For example:
-     ```
-     sudo -iu postgres
-     psql
-     CREATE DATABASE merits;
-     CREATE USER merit_user WITH ENCRYPTED PASSWORD 'yourpassword';
-     GRANT ALL PRIVILEGES ON DATABASE merits TO merit_user;
-     \q
-     ```
-   - **Import** the schema:
-     ```
-     psql -U merit_user -d merits -f create_tables.sql
-     ```
-   - If you have sample data, import it too (like `testdata/sampledata.sql`).
-
-2. **Environment Variables (.env)**  
-   - Create a `.env` in the project root:
-     ```
-     DB_HOST=localhost
-     DB_PORT=5432
-     DB_USER=merit_user
-     DB_PASS=yourpassword
-     DB_NAME=merits
-
-     PURCHASE_PIN=111111
-     FULL_PIN=222222
-     ```
-   - Adjust values as needed.
-
-3. **Install Node Dependencies**  
-   - In the project root:
-     ```
-     npm install
-     ```
-
-4. **Run the Server**  
-   - Start the app:
-     ```
-     node server.js
-     ```
-     or
-     ```
-     npm start
-     ```
-   - By default, it listens on port 3000. Go to http://localhost:3000.
-
-5. **Log In & Use**  
-   - At `/enter-pin`, enter either the purchase pin or the full pin.
-   - If purchase pin, you can only see “Purchase Prizes.” If full pin, you can manage everything.
-   - “Sign Out” or direct to `/logout` to exit your session.
+## 5) Running locally
+1. Install dependencies: `npm install`
+2. Configure `.env`:
+   ```
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=merit_user
+   DB_PASS=yourpassword
+   DB_NAME=merits
+   PURCHASE_PIN=111111
+   FULL_PIN=222222
+   ```
+3. Create DB and load schema (fresh):  
+   `psql -U merit_user -d merits -f create_tables.sql`
+4. If upgrading an existing DB, run the migration:  
+   `psql -U merit_user -d merits -f migrations/20240904_purchase_status.sql`
+5. Start server: `npm start` (or `node server.js`), then visit `http://localhost:3000`.
 
 ---
 
-## 11. Known Issues / Notes
+## 6) Notable behaviours
+- Stock enforcement: purchases blocked when `prize_stock.current_stock <= 0`; out-of-stock prizes are labelled and unclickable in the UI.
+- Refunds: Orders page and purchase cancel path set purchase `status = refunded`, deactivate the purchase, and remaining merits refresh via the view.
+- Collected: Orders page sets `status = collected` (keeps purchase active for stock counting and history).
+- Filters/search: Orders page supports year/form/pupil filters and date range when viewing all orders; pupil search reuses the shared autocomplete.
 
-- All staff currently share the same 6-digit PIN(s). No per-staff accounts yet.
-- For production, consider HTTPS and a proper session store (Redis, etc.).
-- Pupils don’t have direct logins yet, though you can add a simple “pupil PIN” check if desired.
-- The site was tested primarily in a local or intranet environment; not hardened for public exposure.
+---
 
---------------------------------------------------------------------------------
+## 7) Project layout
+- `server.js` wiring, routes in `routes/`, controllers in `controllers/`.
+- Static assets in `public/` per feature (HTML/CSS/JS). Shared styles in `public/css/`, shared menu in `public/commonMenu.js`.
+- Database pool in `db.js`; cron-like jobs in `schedulers/`.
+- Migrations in `migrations/`.
 
+---
+
+## 8) Future considerations
+- Move sessions to a persistent store for production.
+- Harden auth beyond shared PINs.
+- Add automated tests for stock/merit edge cases and order state transitions. 
