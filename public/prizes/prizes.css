@@ -119,6 +119,74 @@
   line-height: 1.6;
 }
 
+.actions-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.actions-cell button {
+  margin: 0;
+}
+
+.action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Add Stock button */
+.add-stock-btn {
+  background-color: #1c9f45;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: var(--transition);
+}
+
+.add-stock-btn:hover {
+  background-color: #167f36;
+}
+
+/* Make stock columns a bit tighter to free width for buttons */
+td[data-field="stock_adjustment"],
+th:nth-child(6) {
+  width: 95px;
+  text-align: center;
+}
+
+td.current_stock,
+th:nth-child(7) {
+  width: 95px;
+  text-align: center;
+}
+
+/* Make the prizes table itself narrower and centered */
+#prizeTable {
+  width: 90%;
+  max-width: 90%;
+  margin: var(--spacing-lg) auto;
+}
+
+/* Tighter table spacing and slightly smaller text to reduce width */
+#prizeTable th,
+#prizeTable td {
+  padding: 10px 8px;
+}
+
+#prizeTable th {
+  font-size: 14px;
+}
+
+#prizeTable td {
+  font-size: 13px;
+}
+
 .info-content p {
   margin: 12px 0;
   padding: 8px;

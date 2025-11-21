@@ -103,9 +103,12 @@ async function loadPrizes() {
           <img src="${prize.image_path}" alt="Prize Image" style="width:50px;height:auto;">
         </td>
         <td data-field="active">${prize.active}</td>
-        <td>
-          <button class="edit-btn" data-id="${prize.prize_id}">Edit</button>
-          <button class="delete-btn" data-id="${prize.prize_id}">Delete</button>
+        <td class="actions-cell">
+          <button class="add-stock-btn" data-id="${prize.prize_id}">Add Stock</button>
+          <div class="action-stack">
+            <button class="edit-btn" data-id="${prize.prize_id}">Edit</button>
+            <button class="delete-btn" data-id="${prize.prize_id}">Delete</button>
+          </div>
         </td>
       `;
       tbody.appendChild(row);
@@ -341,6 +344,11 @@ async function handleInlineEditBlur(e) {
  * Handle clicks on Edit/Delete buttons in the table body.
  */
 async function tableButtonHandler(e) {
+  if (e.target.matches('button.add-stock-btn')) {
+    const prizeId = e.target.getAttribute('data-id');
+    await promptAddStock(prizeId);
+    return;
+  }
   if (e.target.matches('button.edit-btn')) {
     const prizeId = e.target.getAttribute('data-id');
     openEditPrizeModal(prizeId);
@@ -478,6 +486,47 @@ async function deletePrize(prizeId) {
 }
 
 /**
+ * Prompt the user for a quantity to add to stock and push update to the server.
+ * Adds to total_stocked_ever so current_stock reflects the increase.
+ */
+async function promptAddStock(prizeId) {
+  const prizeNumId = parseInt(prizeId, 10);
+  const prize = allPrizes.find(p => p.prize_id === prizeNumId);
+  const currentTotal = prize ? parseInt(prize.total_stocked_ever, 10) || 0 : 0;
+  const prizeName = prize ? prize.description : 'this prize';
+
+  const input = prompt(`Add stock to "${prizeName}". Enter number of items to add:`, '0');
+  if (input === null) return; // user cancelled
+
+  const qty = parseInt(input, 10);
+  if (isNaN(qty) || qty <= 0) {
+    alert('Please enter a positive whole number to add to stock.');
+    return;
+  }
+
+  const newTotal = currentTotal + qty;
+
+  try {
+    const resp = await fetch(`/prizes/edit/${prizeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ total_stocked_ever: newTotal })
+    });
+
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      alert(errData.error || 'Error adding stock');
+      return;
+    }
+
+    await loadPrizes();
+  } catch (err) {
+    console.error('Error adding stock:', err);
+    alert('Error adding stock. Please try again.');
+  }
+}
+
+/**
  * Handle recording spoiled/lost stock
  */
 async function handleSpoiledStockRecord(prizeId, cell) {
@@ -560,4 +609,3 @@ function addStockHelpIcon() {
     });
   }
 }
-
