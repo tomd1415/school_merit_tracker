@@ -35,6 +35,9 @@ router.post('/add', requireFullAccess, upload.single('image'), prizeController.a
 // Show "Edit Prize" page (HTML)
 router.get('/edit/:id', requireFullAccess, prizeController.showEditPrizeForm);
 
+// Toggle stock mode (cycle vs total) - lightweight endpoint for inline switch
+router.post('/mode/:id', requireFullAccess, prizeController.setStockMode);
+
 // Return single prize as JSON for the edit form
 router.get('/:id/json', requireFullAccess, prizeController.getPrizeById);
 
@@ -45,4 +48,3 @@ router.post('/edit/:id', requireFullAccess, upload.single('image'), prizeControl
 router.get('/delete/:id', requireFullAccess, prizeController.deletePrize);
 
 module.exports = router;
-

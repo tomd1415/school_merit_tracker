@@ -173,6 +173,118 @@ td[data-field="reset_day_iso"] {
   white-space: nowrap;
 }
 
+.inline-select {
+  padding: 4px 6px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-light);
+  font-size: 13px;
+}
+
+.toggle-pill {
+  display: inline-flex;
+  border: 1px solid var(--gray-light);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.toggle-pill button {
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.toggle-pill button.active {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.toggle-pill button:hover {
+  background: var(--primary-light);
+  color: var(--white);
+}
+
+.table-container {
+  position: relative;
+  overflow: visible;
+}
+
+.table-scroll-area {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+}
+
+.scroll-paddle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 700;
+  background: rgba(0, 58, 105, 0.12);
+  backdrop-filter: blur(1px);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.scroll-paddle:hover {
+  background: rgba(0, 58, 105, 0.2);
+  opacity: 1;
+}
+
+.scroll-paddle .arrow-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 18px;
+  color: var(--primary-dark);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.scroll-paddle.visible {
+  opacity: 0.9;
+}
+
+.scroll-paddle.left {
+  left: -44px;
+  transform: none;
+  box-shadow: 4px 0 8px rgba(0,0,0,0.08);
+}
+
+.scroll-paddle.right {
+  right: -44px;
+  transform: none;
+  box-shadow: -4px 0 8px rgba(0,0,0,0.08);
+}
+
+#prizeTable th:first-child,
+#prizeTable td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--white);
+  box-shadow: 4px 0 6px rgba(0,0,0,0.05);
+  min-width: 200px;
+}
+
+#prizeTable th:first-child {
+  z-index: 6;
+  background: var(--primary);
+  color: var(--white);
+  font-size: inherit;
+  font-weight: inherit;
+}
+
 /* Make the prizes table itself narrower and centered */
 #prizeTable {
   width: 90%;

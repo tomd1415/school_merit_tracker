@@ -13,6 +13,11 @@ function formatCycleWeeks(weeks) {
   return safeWeeks === 0 ? 'Weekly' : `${safeWeeks} wk${safeWeeks === 1 ? '' : 's'}`;
 }
 
+function formatCycleWeeksVerbose(weeks) {
+  const safeWeeks = Math.max(0, parseInt(weeks, 10) || 0);
+  return safeWeeks === 0 ? 'Every week' : `Every ${safeWeeks} week${safeWeeks === 1 ? '' : 's'}`;
+}
+
 function initCycleToggle(toggleId, fieldsId) {
   const toggle = document.getElementById(toggleId);
   const fields = document.getElementById(fieldsId);
@@ -97,6 +102,9 @@ window.addEventListener('DOMContentLoaded', () => {
   // 10) Cycle toggle visibility
   initCycleToggle('addPrizeCycleLimited', 'addPrizeCycleFields');
   initCycleToggle('editPrizeCycleLimited', 'editPrizeCycleFields');
+
+  // 11) Subtle scroll hint on table
+  initTableScrollHint();
 });
 
 /**
@@ -165,6 +173,7 @@ async function loadPrizes() {
 
     // Now apply or remove inline editing
     applyInlineEditing();
+    initTableScrollHint();
   } catch (err) {
     console.error('Error loading prizes:', err);
   }
@@ -184,12 +193,40 @@ function applyInlineEditing() {
         cell.classList.add('editable');
 
         const fieldName = cell.getAttribute('data-field');
-        if (['reset_day_iso', 'is_cycle_limited'].includes(fieldName)) {
+        if (fieldName === 'is_cycle_limited') {
           cell.contentEditable = false;
+          renderCycleToggle(cell, row);
           return;
         }
 
-        if (fieldName === 'cycle_weeks' || fieldName === 'spaces_per_cycle') {
+        if (fieldName === 'cycle_weeks') {
+          if (!isCycleLimited) {
+            cell.textContent = '—';
+            cell.contentEditable = false;
+            return;
+          }
+          cell.contentEditable = false;
+          renderCycleWeeksSelect(cell, row);
+          return;
+        }
+
+        if (fieldName === 'reset_day_iso') {
+          if (!isCycleLimited) {
+            cell.textContent = '—';
+            cell.contentEditable = false;
+            return;
+          }
+          cell.contentEditable = false;
+          renderResetDaySelect(cell, row);
+          return;
+        }
+
+        if (fieldName === 'spaces_per_cycle') {
+          if (!isCycleLimited) {
+            cell.textContent = '—';
+            cell.contentEditable = false;
+            return;
+          }
           const raw = cell.getAttribute('data-raw');
           if (raw !== null) {
             cell.textContent = raw;
@@ -269,6 +306,8 @@ function applyInlineEditing() {
         } else if (fieldName === 'is_cycle_limited') {
           cell.textContent = isCycleLimited ? 'Cycle' : 'Total';
         } else if (fieldName === 'total_stocked_ever' && isCycleLimited) {
+          cell.textContent = '—';
+        } else if (fieldName === 'stock_adjustment' && isCycleLimited) {
           cell.textContent = '—';
         }
         
@@ -390,39 +429,8 @@ async function handleInlineEditBlur(e) {
   const prizeId = row.getAttribute('data-prize-id');
 
   // Convert certain fields to integers or booleans
-  let parsedValue = newValue;
-  if (['cost_merits', 'cost_money', 'total_stocked_ever', 'stock_adjustment', 'spaces_per_cycle', 'cycle_weeks', 'reset_day_iso'].includes(field)) {
-    parsedValue = parseInt(newValue, 10) || 0;
-  } else if (field === 'active' || field === 'is_cycle_limited') {
-    // If user typed "true" or "false"
-    parsedValue = (newValue.toLowerCase() === 'true');
-  }
-  // For image_path or description, we'll just use the string
-
-  // Prepare the payload (only the one field changed)
-  const payload = { [field]: parsedValue };
-
-  try {
-    const resp = await fetch(`/prizes/edit/${prizeId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => ({}));
-      console.error('Update error:', errData.error || 'Unknown error');
-      alert('Error updating field: ' + (errData.error || 'Unknown'));
-      // Optionally revert cell if needed
-      // loadPrizes();
-    } else {
-      // Re-load to show updated stock or display
-      // (If you only changed "description", you might do partial update,
-      // but if total_stocked_ever changes, current_stock might change too.)
-      await loadPrizes();
-    }
-  } catch (err) {
-    console.error('Inline edit request failed:', err);
-  }
+  const parsedValue = parseFieldValue(field, newValue);
+  await updatePrizeField(prizeId, field, parsedValue);
 }
 
 /**
@@ -740,4 +748,256 @@ function addStockHelpIcon() {
       showModal(document.getElementById('stockInfoModal'));
     });
   }
+}
+
+function parseFieldValue(field, rawValue) {
+  if (['cost_merits', 'cost_money', 'total_stocked_ever', 'stock_adjustment', 'spaces_per_cycle', 'cycle_weeks', 'reset_day_iso'].includes(field)) {
+    return parseInt(rawValue, 10) || 0;
+  }
+  if (field === 'active' || field === 'is_cycle_limited') {
+    return (String(rawValue).toLowerCase() === 'true' || rawValue === true);
+  }
+  return rawValue;
+}
+
+async function updatePrizeField(prizeId, field, value) {
+  const payload = { [field]: value };
+  try {
+    const resp = await fetch(`/prizes/edit/${prizeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      console.error('Update error:', errData.error || 'Unknown error');
+      alert('Error updating field: ' + (errData.error || 'Unknown'));
+      return;
+    }
+    await loadPrizes();
+  } catch (err) {
+    console.error('Inline update failed:', err);
+    alert('Error updating field.');
+  }
+}
+
+async function updateStockMode(prizeId, isCycle) {
+  try {
+    const resp = await fetch(`/prizes/mode/${prizeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ is_cycle_limited: isCycle })
+    });
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      console.error('Stock mode update error:', errData.error || 'Unknown error');
+      alert('Error updating stock mode: ' + (errData.error || 'Unknown'));
+      return;
+    }
+    await loadPrizes();
+  } catch (err) {
+    console.error('Stock mode request failed:', err);
+    alert('Error updating stock mode.');
+  }
+}
+
+function renderCycleToggle(cell, row) {
+  const prizeId = row.getAttribute('data-prize-id');
+  const isCycle = row.getAttribute('data-cycle-limited') === 'true';
+  cell.innerHTML = '';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'toggle-pill';
+
+  const totalBtn = document.createElement('button');
+  totalBtn.type = 'button';
+  totalBtn.textContent = 'Total';
+  totalBtn.className = isCycle ? '' : 'active';
+
+  const cycleBtn = document.createElement('button');
+  cycleBtn.type = 'button';
+  cycleBtn.textContent = 'Cycle';
+  cycleBtn.className = isCycle ? 'active' : '';
+
+  const setMode = async (mode) => {
+    if ((mode === 'cycle' && isCycle) || (mode === 'total' && !isCycle)) return;
+    await updateStockMode(prizeId, mode === 'cycle');
+  };
+
+  totalBtn.addEventListener('click', () => setMode('total'));
+  cycleBtn.addEventListener('click', () => setMode('cycle'));
+
+  wrapper.appendChild(totalBtn);
+  wrapper.appendChild(cycleBtn);
+  cell.appendChild(wrapper);
+}
+
+function renderCycleWeeksSelect(cell, row) {
+  const prizeId = row.getAttribute('data-prize-id');
+  const raw = cell.getAttribute('data-raw');
+  const currentValue = parseInt(raw ?? '0', 10) || 0;
+  const options = [0, 1, 2, 4, 6, 8, 12, 26, 52];
+
+  cell.innerHTML = '';
+  const select = document.createElement('select');
+  select.className = 'inline-select';
+
+  options.forEach(val => {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = formatCycleWeeksVerbose(val);
+    select.appendChild(opt);
+  });
+
+  if (!options.includes(currentValue)) {
+    const customOpt = document.createElement('option');
+    customOpt.value = String(currentValue);
+    customOpt.textContent = `${formatCycleWeeksVerbose(currentValue)} (custom)`;
+    select.appendChild(customOpt);
+  }
+
+  const customOpt = document.createElement('option');
+  customOpt.value = 'custom';
+  customOpt.textContent = 'Custom…';
+  select.appendChild(customOpt);
+
+  select.value = String(options.includes(currentValue) ? currentValue : currentValue);
+
+  select.addEventListener('change', async () => {
+    let newVal = select.value;
+    if (newVal === 'custom') {
+      const input = prompt('Enter cycle length in weeks (0-52):', String(currentValue));
+      if (input === null) {
+        select.value = String(currentValue);
+        return;
+      }
+      const parsed = parseInt(input, 10);
+      if (isNaN(parsed) || parsed < 0 || parsed > 52) {
+        alert('Please enter a number between 0 and 52.');
+        select.value = String(currentValue);
+        return;
+      }
+      newVal = parsed;
+    }
+    await updatePrizeField(prizeId, 'cycle_weeks', parseInt(newVal, 10) || 0);
+  });
+
+  cell.appendChild(select);
+}
+
+function renderResetDaySelect(cell, row) {
+  const prizeId = row.getAttribute('data-prize-id');
+  const raw = cell.getAttribute('data-raw');
+  const currentValue = parseInt(raw ?? '1', 10) || 1;
+
+  cell.innerHTML = '';
+  const select = document.createElement('select');
+  select.className = 'inline-select';
+
+  const days = [
+    { value: 1, label: 'Monday' },
+    { value: 2, label: 'Tuesday' },
+    { value: 3, label: 'Wednesday' },
+    { value: 4, label: 'Thursday' },
+    { value: 5, label: 'Friday' },
+    { value: 6, label: 'Saturday' },
+    { value: 7, label: 'Sunday' }
+  ];
+
+  days.forEach(day => {
+    const opt = document.createElement('option');
+    opt.value = day.value;
+    opt.textContent = day.label;
+    select.appendChild(opt);
+  });
+
+  select.value = String(currentValue);
+
+  select.addEventListener('change', async () => {
+    const newVal = parseInt(select.value, 10) || 1;
+    await updatePrizeField(prizeId, 'reset_day_iso', newVal);
+  });
+
+  cell.appendChild(select);
+}
+
+function initTableScrollHint() {
+  const container = document.querySelector('.table-container');
+  if (!container) return;
+
+  // Ensure an inner scroll area exists so paddles can sit outside without clipping
+  let scrollArea = container.querySelector('.table-scroll-area');
+  if (!scrollArea) {
+    const table = container.querySelector('#prizeTable');
+    if (!table) return;
+    scrollArea = document.createElement('div');
+    scrollArea.className = 'table-scroll-area';
+    table.parentNode.insertBefore(scrollArea, table);
+    scrollArea.appendChild(table);
+  }
+
+  let leftPad = container.querySelector('.scroll-paddle.left');
+  let rightPad = container.querySelector('.scroll-paddle.right');
+
+  if (!leftPad) {
+    leftPad = document.createElement('div');
+    leftPad.className = 'scroll-paddle left';
+    leftPad.innerHTML = `
+      <div class="arrow-stack">
+        <span>←</span>
+        <span>←</span>
+        <span>←</span>
+        <span>←</span>
+        <span>←</span>
+      </div>
+    `;
+    container.appendChild(leftPad);
+  }
+
+  if (!rightPad) {
+    rightPad = document.createElement('div');
+    rightPad.className = 'scroll-paddle right';
+    rightPad.innerHTML = `
+      <div class="arrow-stack">
+        <span>→</span>
+        <span>→</span>
+        <span>→</span>
+        <span>→</span>
+        <span>→</span>
+      </div>
+    `;
+    container.appendChild(rightPad);
+  }
+
+  const scrollStep = 200;
+
+  const update = () => {
+    const hasOverflow = scrollArea.scrollWidth > scrollArea.clientWidth + 2;
+    if (!hasOverflow) {
+      leftPad.classList.remove('visible');
+      rightPad.classList.remove('visible');
+      return;
+    }
+    const atStart = scrollArea.scrollLeft <= 2;
+    const atEnd = scrollArea.scrollLeft >= (scrollArea.scrollWidth - scrollArea.clientWidth - 2);
+    leftPad.classList.toggle('visible', !atStart);
+    rightPad.classList.toggle('visible', !atEnd);
+  };
+
+  leftPad.onclick = () => {
+    scrollArea.scrollBy({ left: -scrollStep, behavior: 'smooth' });
+  };
+  rightPad.onclick = () => {
+    scrollArea.scrollBy({ left: scrollStep, behavior: 'smooth' });
+  };
+
+  if (!container.dataset.scrollHintInit) {
+    scrollArea.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    container.dataset.scrollHintInit = 'true';
+  }
+
+  update();
 }

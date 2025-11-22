@@ -146,6 +146,28 @@ exports.getPrizeById = async (req, res) => {
 };
 
 /**
+ * Lightweight toggle for stock mode (cycle vs total) from inline UI
+ */
+exports.setStockMode = async (req, res) => {
+  const { id } = req.params;
+  const raw = req.body.is_cycle_limited;
+  const isCycle = (raw === true || raw === 'true' || raw === 'on' || raw === '1' || raw === 1);
+  try {
+    const result = await pool.query(
+      `UPDATE prizes SET is_cycle_limited = $1 WHERE prize_id = $2 RETURNING is_cycle_limited`,
+      [isCycle, id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Prize not found' });
+    }
+    return res.json({ success: true, is_cycle_limited: result.rows[0].is_cycle_limited });
+  } catch (err) {
+    console.error('Error toggling stock mode:', err);
+    return res.status(500).json({ error: 'Failed to toggle stock mode' });
+  }
+};
+
+/**
  * Handle "Edit Prize" form submission.
  * Update the record in the DB.
  *
