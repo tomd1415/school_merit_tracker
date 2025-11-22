@@ -186,6 +186,11 @@
   color: var(--danger);
 }
 
+.cycle-meta {
+  font-size: 0.85rem;
+  color: var(--gray);
+}
+
 .prize-card.out-of-stock {
   opacity: 0.6;
   filter: grayscale(0.2);

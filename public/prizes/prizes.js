@@ -3,6 +3,29 @@
 let inlineEditEnabled = false;      // Track whether inline editing is on/off
 let allPrizes = [];                // We'll store the fetched prizes here
 
+function isoDayName(iso) {
+  const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  return names[(iso - 1 + 7) % 7] || 'Monday';
+}
+
+function formatCycleWeeks(weeks) {
+  const safeWeeks = Math.max(0, parseInt(weeks, 10) || 0);
+  return safeWeeks === 0 ? 'Weekly' : `${safeWeeks} wk${safeWeeks === 1 ? '' : 's'}`;
+}
+
+function initCycleToggle(toggleId, fieldsId) {
+  const toggle = document.getElementById(toggleId);
+  const fields = document.getElementById(fieldsId);
+  if (!toggle || !fields) return;
+
+  const sync = () => {
+    fields.style.display = toggle.checked ? 'grid' : 'none';
+  };
+
+  toggle.addEventListener('change', sync);
+  sync();
+}
+
 // Global modal functions
 function showModal(modalElement) {
   modalElement.style.display = 'flex';
@@ -70,6 +93,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // 9) Add help icon to the stock adjustment header
   addStockHelpIcon();
+
+  // 10) Cycle toggle visibility
+  initCycleToggle('addPrizeCycleLimited', 'addPrizeCycleFields');
+  initCycleToggle('editPrizeCycleLimited', 'editPrizeCycleFields');
 });
 
 /**
@@ -88,6 +115,24 @@ async function loadPrizes() {
       // Create a row
       const row = document.createElement('tr');
       row.setAttribute('data-prize-id', prize.prize_id);
+      row.setAttribute('data-cycle-limited', prize.is_cycle_limited);
+
+      const spacesPerCycle = prize.spaces_per_cycle ?? 0;
+      const cycleWeeksValue = prize.cycle_weeks ?? 0;
+      const resetDayValue = prize.reset_day_iso ?? 1;
+      const stockModeLabel = prize.is_cycle_limited ? 'Cycle' : 'Total';
+      const totalStockDisplay = prize.is_cycle_limited ? '—' : prize.total_stocked_ever;
+      const spoiledDisplay = prize.is_cycle_limited ? '—' : prize.stock_adjustment;
+      const spacesDisplay = prize.is_cycle_limited ? spacesPerCycle : '—';
+      const cycleWeeksDisplay = prize.is_cycle_limited ? formatCycleWeeks(cycleWeeksValue) : '—';
+      const resetDayDisplay = prize.is_cycle_limited ? isoDayName(resetDayValue) : '—';
+      const stockNumber = Math.max(prize.current_stock ?? 0, 0);
+      const currentStockDisplay = prize.is_cycle_limited
+        ? `${stockNumber} / ${spacesPerCycle} left`
+        : `${stockNumber}`;
+      const addStockButton = prize.is_cycle_limited
+        ? ''
+        : `<button class="add-stock-btn" data-id="${prize.prize_id}">Add Stock</button>`;
 
       // Build columns (ensure your prizes.html has matching <th>!)
       // We'll store data in 'data-field' attributes for inline editing
@@ -96,15 +141,19 @@ async function loadPrizes() {
         <td data-field="description">${prize.description}</td>
         <td data-field="cost_merits">${prize.cost_merits}</td>
         <td data-field="cost_money">${prize.cost_money}</td>
-        <td data-field="total_stocked_ever">${prize.total_stocked_ever}</td>
-        <td data-field="stock_adjustment">${prize.stock_adjustment}</td>
-        <td class="current_stock">${prize.current_stock ?? 0}</td>
+        <td data-field="is_cycle_limited" data-raw="${prize.is_cycle_limited}">${stockModeLabel}</td>
+        <td data-field="total_stocked_ever" data-raw="${prize.total_stocked_ever}">${totalStockDisplay}</td>
+        <td data-field="stock_adjustment" data-raw="${prize.stock_adjustment}">${spoiledDisplay}</td>
+        <td data-field="spaces_per_cycle" data-raw="${spacesPerCycle}">${spacesDisplay}</td>
+        <td data-field="cycle_weeks" data-raw="${cycleWeeksValue}">${cycleWeeksDisplay}</td>
+        <td data-field="reset_day_iso" data-raw="${resetDayValue}">${resetDayDisplay}</td>
+        <td class="current_stock">${currentStockDisplay}</td>
         <td data-field="image_path">
           <img src="${prize.image_path}" alt="Prize Image" style="width:50px;height:auto;">
         </td>
         <td data-field="active">${prize.active}</td>
         <td class="actions-cell">
-          <button class="add-stock-btn" data-id="${prize.prize_id}">Add Stock</button>
+          ${addStockButton}
           <div class="action-stack">
             <button class="edit-btn" data-id="${prize.prize_id}">Edit</button>
             <button class="delete-btn" data-id="${prize.prize_id}">Delete</button>
@@ -127,11 +176,30 @@ async function loadPrizes() {
 function applyInlineEditing() {
   const rows = document.querySelectorAll('#prizeTable tbody tr');
   rows.forEach(row => {
+    const isCycleLimited = row.getAttribute('data-cycle-limited') === 'true';
     const editableCells = row.querySelectorAll('[data-field]');
     editableCells.forEach(cell => {
       if (inlineEditEnabled) {
         // Make it contentEditable (except image changes might need special handling)
         cell.classList.add('editable');
+
+        const fieldName = cell.getAttribute('data-field');
+        if (['reset_day_iso', 'is_cycle_limited'].includes(fieldName)) {
+          cell.contentEditable = false;
+          return;
+        }
+
+        if (fieldName === 'cycle_weeks' || fieldName === 'spaces_per_cycle') {
+          const raw = cell.getAttribute('data-raw');
+          if (raw !== null) {
+            cell.textContent = raw;
+          }
+        }
+
+        if (fieldName === 'total_stocked_ever' && isCycleLimited) {
+          cell.contentEditable = false;
+          return;
+        }
         
         // For image cells, we'll set up drag-and-drop instead of contentEditable
         if (cell.getAttribute('data-field') === 'image_path') {
@@ -153,6 +221,10 @@ function applyInlineEditing() {
         } 
         // Special handling for stock_adjustment
         else if (cell.getAttribute('data-field') === 'stock_adjustment') {
+          if (isCycleLimited) {
+            cell.contentEditable = false;
+            return;
+          }
           cell.contentEditable = false;
           
           // Create a special input UI for stock adjustment
@@ -186,6 +258,19 @@ function applyInlineEditing() {
         cell.classList.remove('editable');
         cell.contentEditable = false;
         cell.removeEventListener('blur', handleInlineEditBlur);
+
+        const fieldName = cell.getAttribute('data-field');
+        if (fieldName === 'cycle_weeks') {
+          cell.textContent = isCycleLimited ? formatCycleWeeks(cell.getAttribute('data-raw')) : '—';
+        } else if (fieldName === 'spaces_per_cycle') {
+          cell.textContent = isCycleLimited ? (cell.getAttribute('data-raw') ?? cell.textContent) : '—';
+        } else if (fieldName === 'reset_day_iso') {
+          cell.textContent = isCycleLimited ? isoDayName(cell.getAttribute('data-raw')) : '—';
+        } else if (fieldName === 'is_cycle_limited') {
+          cell.textContent = isCycleLimited ? 'Cycle' : 'Total';
+        } else if (fieldName === 'total_stocked_ever' && isCycleLimited) {
+          cell.textContent = '—';
+        }
         
         // Remove drag-and-drop for images
         if (cell.getAttribute('data-field') === 'image_path') {
@@ -306,9 +391,9 @@ async function handleInlineEditBlur(e) {
 
   // Convert certain fields to integers or booleans
   let parsedValue = newValue;
-  if (['cost_merits', 'cost_money', 'total_stocked_ever', 'stock_adjustment'].includes(field)) {
+  if (['cost_merits', 'cost_money', 'total_stocked_ever', 'stock_adjustment', 'spaces_per_cycle', 'cycle_weeks', 'reset_day_iso'].includes(field)) {
     parsedValue = parseInt(newValue, 10) || 0;
-  } else if (field === 'active') {
+  } else if (field === 'active' || field === 'is_cycle_limited') {
     // If user typed "true" or "false"
     parsedValue = (newValue.toLowerCase() === 'true');
   }
@@ -373,6 +458,10 @@ async function addPrizeHandler(e) {
   const description = document.getElementById('addPrizeDescription').value.trim();
   const cost_merits = document.getElementById('addPrizeCostMerits').value;
   const cost_money = document.getElementById('addPrizeCostMoney').value;
+  const is_cycle_limited = document.getElementById('addPrizeCycleLimited').checked;
+  const spaces_per_cycle = document.getElementById('addPrizeSpacesPerCycle').value;
+  const cycle_weeks = document.getElementById('addPrizeCycleWeeks').value;
+  const reset_day_iso = document.getElementById('addPrizeResetDay').value;
   const imageFile = document.getElementById('addPrizeImage').files[0];
 
   if (!description || cost_merits === '' || cost_money === '' || !imageFile) {
@@ -380,10 +469,25 @@ async function addPrizeHandler(e) {
     return;
   }
 
+  if (is_cycle_limited) {
+    const parsedSpaces = parseInt(spaces_per_cycle, 10);
+    if (isNaN(parsedSpaces) || parsedSpaces < 1) {
+      feedback.textContent = 'Please set Spaces per cycle to at least 1.';
+      return;
+    }
+  }
+
+  const clampedCycleWeeks = Math.min(52, Math.max(0, parseInt(cycle_weeks, 10) || 0));
+  const clampedResetDay = Math.min(7, Math.max(1, parseInt(reset_day_iso, 10) || 1));
+
   const formData = new FormData();
   formData.append('description', description);
   formData.append('cost_merits', cost_merits);
   formData.append('cost_money', cost_money);
+  formData.append('is_cycle_limited', is_cycle_limited);
+  formData.append('spaces_per_cycle', spaces_per_cycle || 0);
+  formData.append('cycle_weeks', clampedCycleWeeks);
+  formData.append('reset_day_iso', clampedResetDay);
   formData.append('image', imageFile);
 
   try {
@@ -417,6 +521,11 @@ async function openEditPrizeModal(prizeId) {
     document.getElementById('editPrizeDescription').value = prize.description;
     document.getElementById('editPrizeCostMerits').value = prize.cost_merits;
     document.getElementById('editPrizeCostMoney').value = prize.cost_money;
+    document.getElementById('editPrizeCycleLimited').checked = !!prize.is_cycle_limited;
+    document.getElementById('editPrizeSpacesPerCycle').value = prize.spaces_per_cycle ?? 0;
+    document.getElementById('editPrizeCycleWeeks').value = prize.cycle_weeks ?? 0;
+    document.getElementById('editPrizeResetDay').value = prize.reset_day_iso ?? 1;
+    document.getElementById('editPrizeCycleLimited').dispatchEvent(new Event('change'));
     document.getElementById('currentPrizeImage').innerHTML =
       `<img src="${prize.image_path}" alt="Current Prize Image" style="width:100px;height:auto;">`;
 
@@ -444,12 +553,31 @@ async function editPrizeFormHandler(e) {
   const description = document.getElementById('editPrizeDescription').value.trim();
   const cost_merits = document.getElementById('editPrizeCostMerits').value;
   const cost_money = document.getElementById('editPrizeCostMoney').value;
+  const is_cycle_limited = document.getElementById('editPrizeCycleLimited').checked;
+  const spaces_per_cycle = document.getElementById('editPrizeSpacesPerCycle').value;
+  const cycle_weeks = document.getElementById('editPrizeCycleWeeks').value;
+  const reset_day_iso = document.getElementById('editPrizeResetDay').value;
   const imageFile = document.getElementById('editPrizeImage').files[0];
+
+  if (is_cycle_limited) {
+    const parsedSpaces = parseInt(spaces_per_cycle, 10);
+    if (isNaN(parsedSpaces) || parsedSpaces < 1) {
+      feedback.textContent = 'Please set Spaces per cycle to at least 1.';
+      return;
+    }
+  }
+
+  const clampedCycleWeeks = Math.min(52, Math.max(0, parseInt(cycle_weeks, 10) || 0));
+  const clampedResetDay = Math.min(7, Math.max(1, parseInt(reset_day_iso, 10) || 1));
 
   const formData = new FormData();
   formData.append('description', description);
   formData.append('cost_merits', cost_merits);
   formData.append('cost_money', cost_money);
+  formData.append('is_cycle_limited', is_cycle_limited);
+  formData.append('spaces_per_cycle', spaces_per_cycle || 0);
+  formData.append('cycle_weeks', clampedCycleWeeks);
+  formData.append('reset_day_iso', clampedResetDay);
 
   if (imageFile) {
     formData.append('image', imageFile);
@@ -492,6 +620,10 @@ async function deletePrize(prizeId) {
 async function promptAddStock(prizeId) {
   const prizeNumId = parseInt(prizeId, 10);
   const prize = allPrizes.find(p => p.prize_id === prizeNumId);
+  if (prize && prize.is_cycle_limited) {
+    alert('This prize uses cycle-based spaces. Adjust "Spaces per cycle" instead.');
+    return;
+  }
   const currentTotal = prize ? parseInt(prize.total_stocked_ever, 10) || 0 : 0;
   const prizeName = prize ? prize.description : 'this prize';
 

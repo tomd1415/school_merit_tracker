@@ -9,6 +9,16 @@ let currentPrizeMerits = null; // Store the merit cost of the current purchase
 let recentPupils = []; // Store last few selected pupils for quick reuse
 let sidebarSelectedPupil = null; // Store the currently selected pupil in the sidebar
 
+function isoDayName(iso) {
+  const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  return names[(iso - 1 + 7) % 7] || 'Monday';
+}
+
+function formatCycleWeeks(weeks) {
+  const safeWeeks = Math.max(0, parseInt(weeks, 10) || 0);
+  return safeWeeks === 0 ? 'Every week' : `Every ${safeWeeks} week${safeWeeks === 1 ? '' : 's'}`;
+}
+
 // Replace any lingering "merit" wording in error messages with "APs"
 function normalizeAPLabel(msg) {
   return msg ? msg.replace(/merits?/gi, 'APs') : msg;
@@ -137,8 +147,16 @@ document.addEventListener('DOMContentLoaded', () => {
       prizeContainer.innerHTML = '';
 
       prizes.forEach((prize, index) => {
-        const currentStock = Number(prize.current_stock ?? 0);
+        const currentStock = Math.max(Number(prize.current_stock ?? 0), 0);
         const outOfStock = currentStock <= 0;
+        const isCycle = !!prize.is_cycle_limited;
+        const spacesLabel = isCycle
+          ? `${currentStock} of ${prize.spaces_per_cycle ?? 0} spaces left`
+          : `${currentStock} in stock`;
+        const outOfStockLabel = isCycle ? 'No spaces left this cycle' : 'Out of stock';
+        const cycleMeta = isCycle
+          ? `<div class="cycle-meta">${formatCycleWeeks(prize.cycle_weeks)} · Resets ${isoDayName(prize.reset_day_iso)} 02:00</div>`
+          : '';
 
         const card = document.createElement('div');
         card.className = `prize-card${outOfStock ? ' out-of-stock' : ''}`;
@@ -150,8 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3>${prize.description}</h3>
             <span class="prize-cost">${prize.cost_merits}</span>
             <div class="stock-badge ${outOfStock ? 'stock-empty' : ''}">
-              ${outOfStock ? 'Out of stock' : `${currentStock} in stock`}
+              ${outOfStock ? outOfStockLabel : spacesLabel}
             </div>
+            ${cycleMeta}
           </div>
         `;
 

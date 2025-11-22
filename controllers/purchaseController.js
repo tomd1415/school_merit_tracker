@@ -17,6 +17,10 @@ exports.getAllPrizes = async (req, res) => {
         p.cost_merits, 
         p.cost_money, 
         p.image_path,
+        p.is_cycle_limited,
+        p.spaces_per_cycle,
+        p.cycle_weeks,
+        p.reset_day_iso,
         COALESCE(ps.current_stock, 0) AS current_stock
       FROM prizes p
       LEFT JOIN prize_stock ps ON p.prize_id = ps.prize_id
@@ -80,21 +84,24 @@ exports.createPurchase = async (req, res) => {
     const prizeCheck = await pool.query(`
       SELECT 
         p.cost_merits,
-        (p.total_stocked_ever + p.stock_adjustment - COUNT(pu.purchase_id)) AS current_stock
+        p.is_cycle_limited,
+        p.spaces_per_cycle,
+        p.cycle_weeks,
+        p.reset_day_iso,
+        COALESCE(ps.current_stock, 0) AS current_stock
       FROM prizes p
-      LEFT JOIN purchase pu
-        ON p.prize_id = pu.prize_id
-       AND pu.active = TRUE
+      LEFT JOIN prize_stock ps ON ps.prize_id = p.prize_id
       WHERE p.prize_id = $1 AND p.active = TRUE
-      GROUP BY p.prize_id, p.cost_merits, p.total_stocked_ever, p.stock_adjustment
+      GROUP BY p.prize_id, p.cost_merits, p.is_cycle_limited, p.spaces_per_cycle, p.cycle_weeks, p.reset_day_iso, ps.current_stock
     `, [prize_id]);
     if (prizeCheck.rowCount === 0) {
       return res.status(400).json({ error: 'Invalid or inactive prize' });
     }
-    const { cost_merits, current_stock } = prizeCheck.rows[0];
+    const { cost_merits, current_stock, is_cycle_limited } = prizeCheck.rows[0];
 
     if ((current_stock ?? 0) <= 0) {
-      return res.status(400).json({ error: 'This prize is out of stock.' });
+      const msg = is_cycle_limited ? 'No spaces left this cycle.' : 'This prize is out of stock.';
+      return res.status(400).json({ error: msg });
     }
 
     // 2) Check pupil's current *remaining* merits using the view

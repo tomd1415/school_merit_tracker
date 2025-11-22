@@ -37,9 +37,12 @@
             <th>Description</th>
             <th>APs Cost</th>
             <th>Money Cost</th>
-            <!-- New columns for stock logic: -->
+            <th>Stock Mode</th>
             <th>Total Stocked Ever</th>
             <th>Lost/Spoiled Items</th>
+            <th>Spaces / Cycle</th>
+            <th>Cycle Weeks</th>
+            <th>Reset Day</th>
             <th>Current Stock</th>
             <th>Image</th>
             <th>Active</th>
@@ -71,6 +74,35 @@
           <label for="addPrizeCostMoney">Money Cost:</label>
           <input type="number" id="addPrizeCostMoney" min="0" required />
         </div>
+        <fieldset class="cycle-toggle">
+          <legend>Cycle-based spaces</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="addPrizeCycleLimited" />
+            <span>Use spaces per cycle (ignore total stock)</span>
+          </label>
+          <div class="cycle-fields" id="addPrizeCycleFields" style="display:none;">
+            <div class="form-group inline">
+              <label for="addPrizeSpacesPerCycle">Spaces per cycle:</label>
+              <input type="number" id="addPrizeSpacesPerCycle" min="0" value="0" />
+            </div>
+            <div class="form-group inline">
+              <label for="addPrizeCycleWeeks">Cycle length (weeks, 0 = weekly):</label>
+              <input type="number" id="addPrizeCycleWeeks" min="0" max="52" value="0" />
+            </div>
+            <div class="form-group inline">
+              <label for="addPrizeResetDay">Reset day (02:00 Europe/London):</label>
+              <select id="addPrizeResetDay">
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+                <option value="7">Sunday</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
         <div class="form-group">
           <label for="addPrizeImage">Image:</label>
           <input type="file" id="addPrizeImage" accept="image/*" required />
@@ -103,6 +135,35 @@
           <label for="editPrizeCostMoney">Money Cost:</label>
           <input type="number" id="editPrizeCostMoney" min="0" required />
         </div>
+        <fieldset class="cycle-toggle">
+          <legend>Cycle-based spaces</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="editPrizeCycleLimited" />
+            <span>Use spaces per cycle (ignore total stock)</span>
+          </label>
+          <div class="cycle-fields" id="editPrizeCycleFields" style="display:none;">
+            <div class="form-group inline">
+              <label for="editPrizeSpacesPerCycle">Spaces per cycle:</label>
+              <input type="number" id="editPrizeSpacesPerCycle" min="0" value="0" />
+            </div>
+            <div class="form-group inline">
+              <label for="editPrizeCycleWeeks">Cycle length (weeks, 0 = weekly):</label>
+              <input type="number" id="editPrizeCycleWeeks" min="0" max="52" value="0" />
+            </div>
+            <div class="form-group inline">
+              <label for="editPrizeResetDay">Reset day (02:00 Europe/London):</label>
+              <select id="editPrizeResetDay">
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+                <option value="7">Sunday</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
         <div class="form-group">
           <label>Current Image:</label>
           <div id="currentPrizeImage" class="preview-image"></div>
@@ -128,7 +189,8 @@
       <div class="info-content">
         <p><strong>Total Stocked Ever:</strong> The total number of items ever added to inventory.</p>
         <p><strong>Lost/Spoiled Items:</strong> The number of items that have been lost, damaged or spoiled. Enter a positive number when recording spoiled items - the system automatically subtracts them from your stock.</p>
-        <p><strong>Current Stock:</strong> Calculated as: Total Stocked Ever - Lost/Spoiled Items - Purchased Items</p>
+        <p><strong>Cycle-based spaces:</strong> For experiences with limited weekly spaces, tick cycle mode and set the spaces per cycle, the number of weeks in the cycle (0 = every week), and the reset day. Spaces reset at 02:00 Europe/London on the chosen day, anchored to the most recent reset day.</p>
+        <p><strong>Current Stock:</strong> Total-based: Total Stocked Ever - Lost/Spoiled Items - Purchased Items. Cycle-based: Spaces per cycle minus active purchases since the last reset.</p>
       </div>
       <button id="closeStockInfoButton">Close</button>
     </div>
@@ -139,4 +201,3 @@
   <script src="/commonMenu.js"></script>
 </body>
 </html>
-

@@ -51,15 +51,15 @@ INSERT INTO pupils (first_name, last_name, merits, form_id, active) VALUES
 
 -- 3) Prizes (active and retired items, with stock adjustments)
 INSERT INTO prizes
-  (description,             cost_merits, cost_money, image_path,                total_stocked_ever, stock_adjustment, active) VALUES
-  ('Sticker Pack',                 3,          0,  '/images/sticker_pack.png',           120,              -5, true),
-  ('Reusable Straw Set',           6,        250,  '/images/reusable_straw.png',          40,               5, true),
-  ('Sketchbook',                  10,        599,  '/images/sketchbook.png',             30,               0, true),
-  ('Lunch Queue Fast Pass',       12,          0,  '/images/fast_pass.png',              10,              -1, true),
-  ('School Hoodie',               28,       2499,  '/images/hoodie.png',                 12,               2, true),
-  ('Bluetooth Speaker',           40,       2999,  '/images/speaker.png',                 6,               0, true),
-  ('School Badge (Retired)',       2,         99,  '/images/badge.png',                  80,             -10, false),
-  ('Exam Revision Guide',         15,       1099,  '/images/revision_guide.png',         25,              -3, true);
+  (description,             cost_merits, cost_money, image_path,                total_stocked_ever, stock_adjustment, is_cycle_limited, spaces_per_cycle, cycle_weeks, reset_day_iso, active) VALUES
+  ('Sticker Pack',                 3,          0,  '/images/sticker_pack.png',           120,              -5, false,               0,           0,            1, true),
+  ('Reusable Straw Set',           6,        250,  '/images/reusable_straw.png',          40,               5, false,               0,           0,            1, true),
+  ('Sketchbook',                  10,        599,  '/images/sketchbook.png',             30,               0, false,               0,           0,            1, true),
+  ('Lunch Queue Fast Pass',       12,          0,  '/images/fast_pass.png',              10,              -1, true,               25,           0,            5, true),
+  ('School Hoodie',               28,       2499,  '/images/hoodie.png',                 12,               2, false,               0,           0,            1, true),
+  ('Bluetooth Speaker',           40,       2999,  '/images/speaker.png',                 6,               0, false,               0,           0,            1, true),
+  ('School Badge (Retired)',       2,         99,  '/images/badge.png',                  80,             -10, false,               0,           0,            1, false),
+  ('Exam Revision Guide',         15,       1099,  '/images/revision_guide.png',         25,              -3, false,               0,           0,            1, true);
 
 -- 4) Purchases (mix of active/voided rows spanning prizes/pupils)
 INSERT INTO purchase (pupil_id, prize_id, merit_cost_at_time, date, active) VALUES

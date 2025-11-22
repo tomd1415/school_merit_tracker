@@ -161,9 +161,16 @@ th:nth-child(6) {
 }
 
 td.current_stock,
-th:nth-child(7) {
+th:nth-child(10) {
   width: 95px;
   text-align: center;
+}
+
+td[data-field="spaces_per_cycle"],
+td[data-field="cycle_weeks"],
+td[data-field="reset_day_iso"] {
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* Make the prizes table itself narrower and centered */
@@ -196,6 +203,36 @@ th:nth-child(7) {
 
 .info-content p:nth-child(odd) {
   background-color: rgba(0, 58, 105, 0.05);
+}
+
+/* Cycle settings */
+.cycle-toggle {
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.cycle-toggle legend {
+  font-weight: 600;
+  padding: 0 var(--spacing-sm);
+}
+
+.cycle-toggle .checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.cycle-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.cycle-fields .form-group.inline {
+  margin-bottom: 0;
 }
 
 .info-content strong {

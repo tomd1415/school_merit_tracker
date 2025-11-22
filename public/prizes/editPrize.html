@@ -29,6 +29,35 @@
         <label for="image_path">Image Path:</label>
         <input type="text" id="image_path" name="image_path" required />
       </div>
+      <fieldset class="cycle-toggle">
+        <legend>Cycle-based spaces</legend>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="is_cycle_limited" name="is_cycle_limited" />
+            Use spaces per cycle (ignore total stock)
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="spaces_per_cycle">Spaces per cycle:</label>
+          <input type="number" id="spaces_per_cycle" name="spaces_per_cycle" min="0" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="cycle_weeks">Cycle length (weeks, 0 = weekly):</label>
+          <input type="number" id="cycle_weeks" name="cycle_weeks" min="0" max="52" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="reset_day_iso">Reset day (02:00 Europe/London):</label>
+          <select id="reset_day_iso" name="reset_day_iso">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+            <option value="7">Sunday</option>
+          </select>
+        </div>
+      </fieldset>
       <div class="form-group">
         <label for="active">Active:</label>
         <select id="active" name="active">
@@ -59,6 +88,10 @@
         document.getElementById('cost_money').value = prize.cost_money;
         document.getElementById('image_path').value = prize.image_path;
         document.getElementById('active').value = prize.active ? 'true' : 'false';
+        document.getElementById('is_cycle_limited').checked = !!prize.is_cycle_limited;
+        document.getElementById('spaces_per_cycle').value = prize.spaces_per_cycle ?? 0;
+        document.getElementById('cycle_weeks').value = prize.cycle_weeks ?? 0;
+        document.getElementById('reset_day_iso').value = prize.reset_day_iso ?? 1;
 
         // 2) Set form action to /prizes/edit/:id
         form.action = `/prizes/edit/${prizeId}`;

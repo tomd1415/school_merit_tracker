@@ -48,6 +48,10 @@ CREATE TABLE prizes (
     image_path         VARCHAR(255) NOT NULL,
     total_stocked_ever INTEGER      NOT NULL CHECK (total_stocked_ever >= 0),
     stock_adjustment   INTEGER      NOT NULL,
+    is_cycle_limited   BOOLEAN      NOT NULL DEFAULT FALSE,
+    spaces_per_cycle   INTEGER      NOT NULL DEFAULT 0,
+    cycle_weeks        INTEGER      NOT NULL DEFAULT 0 CHECK (cycle_weeks >= 0 AND cycle_weeks <= 52),
+    reset_day_iso      INTEGER      NOT NULL DEFAULT 1 CHECK (reset_day_iso >= 1 AND reset_day_iso <= 7),
     active             BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
@@ -72,18 +76,57 @@ CREATE TABLE purchase (
 );
 
 -- =========================================================
--- Create views
+-- Create helper and views
 -- =========================================================
+
+-- Helper: start of the current cycle at 02:00 Europe/London
+CREATE OR REPLACE FUNCTION prize_cycle_start(reset_day_iso INTEGER, cycle_weeks INTEGER)
+RETURNS TIMESTAMPTZ AS $$
+DECLARE
+  local_now      TIMESTAMPTZ := now() AT TIME ZONE 'Europe/London';
+  interval_weeks INTEGER     := GREATEST(cycle_weeks, 1);
+  week_start     TIMESTAMPTZ := date_trunc('week', local_now); -- Monday 00:00 (ISO)
+  candidate      TIMESTAMPTZ;
+BEGIN
+  IF reset_day_iso IS NULL OR reset_day_iso < 1 OR reset_day_iso > 7 THEN
+    reset_day_iso := 1; -- default Monday
+  END IF;
+
+  candidate := week_start
+               + ((reset_day_iso - 1) * INTERVAL '1 day')
+               + INTERVAL '2 hours';
+
+  IF local_now < candidate THEN
+    candidate := candidate - (interval_weeks * INTERVAL '1 week');
+  END IF;
+
+  RETURN candidate;
+END;
+$$ LANGUAGE plpgsql;
 
 -- View to show current stock of prizes
 CREATE VIEW prize_stock AS
 SELECT
     p.prize_id,
     p.description,
-    p.total_stocked_ever
-      + p.stock_adjustment
-      - COUNT(pu.purchase_id)::INT
-      AS current_stock
+    CASE
+      WHEN p.is_cycle_limited THEN
+        GREATEST(
+          p.spaces_per_cycle
+            - (
+                SELECT COUNT(pu.purchase_id)
+                  FROM purchase pu
+                 WHERE pu.prize_id = p.prize_id
+                   AND pu.active = TRUE
+                   AND pu.date >= prize_cycle_start(p.reset_day_iso, p.cycle_weeks)
+              ),
+          0
+        )
+      ELSE
+        p.total_stocked_ever
+          + p.stock_adjustment
+          - COUNT(pu.purchase_id)::INT
+    END AS current_stock
 FROM prizes p
 LEFT JOIN purchase pu
        ON p.prize_id = pu.prize_id
@@ -93,7 +136,11 @@ GROUP BY
     p.prize_id,
     p.description,
     p.total_stocked_ever,
-    p.stock_adjustment;
+    p.stock_adjustment,
+    p.spaces_per_cycle,
+    p.is_cycle_limited,
+    p.reset_day_iso,
+    p.cycle_weeks;
 
 -- View to show remaining merits per pupil
 CREATE VIEW pupil_remaining_merits AS

@@ -25,14 +25,16 @@ A Node.js + Express + PostgreSQL app for running the school's AP reward system. 
 - Tables: `form`, `pupils`, `prizes`, `purchase`.
 - Key fields:
   - `pupils.merits`: total APs available to a pupil.
-  - `prizes`: `total_stocked_ever`, `stock_adjustment`, `active`.
+  - `prizes`: `total_stocked_ever`, `stock_adjustment`, `active`, plus cycle stock (`is_cycle_limited`, `spaces_per_cycle`, `cycle_weeks`, `reset_day_iso`).
   - `purchase`: `status` (`pending`, `collected`, `refunded`), `fulfilled_at`, `active` (legacy flag kept).
 - Views:
-  - `prize_stock`: total_stocked_ever + stock_adjustment - active purchases.
+  - `prize_stock`: total-based stock or cycle-based spaces (spaces per cycle minus purchases since the current cycle start at 02:00 Europe/London on the configured reset day).
   - `pupil_remaining_merits`: merits - active purchases.
 
 **Schema upgrades**  
-Existing databases should run `migrations/20240904_purchase_status.sql` to add `status` and `fulfilled_at` to `purchase` and backfill data.
+Existing databases should run:
+- `migrations/20240904_purchase_status.sql` to add `status` and `fulfilled_at` to `purchase` and backfill data.
+- `migrations/20250314_cycle_stock.sql` to add cycle-based prize stock support (columns, helper function, refreshed `prize_stock` view).
 
 ---
 
