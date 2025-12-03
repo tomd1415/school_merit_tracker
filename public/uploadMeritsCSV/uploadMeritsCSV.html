@@ -22,6 +22,14 @@
           <label for="csvFile">CSV File:</label>
           <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
         </div>
+        <div class="form-group">
+          <label>Options</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" id="addMissingToggle" name="addMissingPupils"> Auto-add missing pupils using CSV form</label>
+            <label><input type="checkbox" id="createFormsToggle" name="createForms"> Create forms that are missing (uses year group from CSV)</label>
+            <label><input type="checkbox" id="updateFormToggle" name="updateFormFromCsv"> Update existing pupil form to match CSV</label>
+          </div>
+        </div>
         <button type="submit" class="primary-btn">Upload</button>
       </form>
       <div id="uploadMessage" class="feedback-message"></div>
@@ -41,6 +49,9 @@
               <tr>
                 <th>Name</th>
                 <th>APs</th>
+                <th>Form</th>
+                <th>Year</th>
+                <th>Reason</th>
                 <th>Action</th>
                 <th>Form (for Add)</th>
               </tr>

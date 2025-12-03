@@ -112,6 +112,12 @@ section h2 {
   text-align: left;
 }
 
+.checkbox-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+
 .table-wrapper {
   overflow-x: auto;
 }

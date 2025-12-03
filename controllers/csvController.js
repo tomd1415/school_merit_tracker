@@ -139,25 +139,39 @@ exports.uploadMeritsCSV = async (req, res) => {
     return res.status(500).json({ error: 'Error reading CSV file.' });
   }
 
+  const boolVal = (v) => v === true || v === 'true' || v === 'on' || v === '1' || v === 1;
+  const addMissingPupils = boolVal(req.body?.addMissingPupils);
+  const createForms = boolVal(req.body?.createForms);
+  const updateFormFromCsv = boolVal(req.body?.updateFormFromCsv);
+
+  const parseYear = (raw) => {
+    const match = `${raw || ''}`.match(/(\d{1,2})/);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
   const aggregated = new Map();
-  const addAggregate = (first_name, last_name, merits) => {
+  const addAggregate = (first_name, last_name, merits, form_name, year_group) => {
     if (!first_name || !last_name || !Number.isFinite(merits)) return;
     const key = nameKey(first_name, last_name);
-    const existing = aggregated.get(key) || { first_name, last_name, merits: 0 };
+    const existing = aggregated.get(key) || { first_name, last_name, merits: 0, form_name: '', year_group: null };
     existing.merits += merits;
+    if (form_name) existing.form_name = form_name;
+    if (year_group != null) existing.year_group = year_group;
     aggregated.set(key, existing);
   };
 
   for (const row of rows) {
-    // Source format: Name + Points
+    // Source format: Name + Points (+ Form Group, Year Group)
     if (row.Name && row.Points) {
       const name = (row.Name || '').trim();
       const parts = name.split(/\s+/, 2);
       const first_name = parts[0] || '';
       const last_name = parts[1] || '';
       const pts = parseInt(String(row.Points).trim(), 10);
+      const form_name = (row['Form Group'] || row.Form || row.form_group || '').toString().trim();
+      const year_group = parseYear(row['Year Group'] || row.year_group);
       if (!isNaN(pts)) {
-        addAggregate(first_name, last_name, pts);
+        addAggregate(first_name, last_name, pts, form_name, year_group);
         continue;
       }
     }
@@ -167,10 +181,41 @@ exports.uploadMeritsCSV = async (req, res) => {
     const last_name = (row.last_name || row.Last_name || '').trim();
     const meritsStr = (row.merits || row.Merits || row.points || '').toString().trim();
     const merits = parseInt(meritsStr, 10);
+    const form_name = (row.form_name || row.form || row.Form || row['Form Group'] || '').toString().trim();
+    const year_group = parseYear(row.year_group || row.Year_group || row['Year Group']);
     if (!isNaN(merits)) {
-      addAggregate(first_name, last_name, merits);
+      addAggregate(first_name, last_name, merits, form_name, year_group);
     }
   }
+
+  // Cache forms
+  const formsResult = await pool.query('SELECT form_id, form_name, year_group FROM form WHERE active = TRUE');
+  const formCache = new Map(formsResult.rows.map(f => [f.form_name.trim().toLowerCase(), f]));
+  const createdForms = [];
+  const ensureForm = async (form_name, year_group) => {
+    if (!form_name) return null;
+    const key = form_name.trim().toLowerCase();
+    if (formCache.has(key)) return formCache.get(key).form_id;
+    if (!createForms) return null;
+    if (year_group == null || Number.isNaN(year_group)) return null;
+    try {
+      const insert = await pool.query(
+        `
+          INSERT INTO form (form_name, form_tutor, year_group, active)
+          VALUES ($1, $2, $3, TRUE)
+          RETURNING form_id, form_name, year_group
+        `,
+        [form_name.trim(), 'Unknown', year_group]
+      );
+      const rec = insert.rows[0];
+      formCache.set(key, rec);
+      createdForms.push(rec.form_name);
+      return rec.form_id;
+    } catch (err) {
+      console.error('Error creating form:', err);
+      return null;
+    }
+  };
 
   await ensureIgnoreTable();
   const ignoreRows = await pool.query('SELECT key_lower FROM merit_import_ignore');
@@ -178,6 +223,9 @@ exports.uploadMeritsCSV = async (req, res) => {
 
   const missingPupils = [];
   const lowerKept = [];
+  const addedPupils = [];
+  const formUpdateFailures = [];
+  let formUpdates = 0;
   let updatedCount = 0;
   let unchangedCount = 0;
   let ignoredCount = 0;
@@ -188,11 +236,11 @@ exports.uploadMeritsCSV = async (req, res) => {
       continue;
     }
 
-    const { first_name, last_name, merits } = entry;
+    const { first_name, last_name, merits, form_name, year_group } = entry;
     try {
       const checkResult = await pool.query(
         `
-          SELECT pupil_id, merits
+          SELECT pupil_id, merits, form_id
             FROM pupils
            WHERE active = TRUE
              AND LOWER(first_name) = LOWER($1)
@@ -203,7 +251,23 @@ exports.uploadMeritsCSV = async (req, res) => {
       );
 
       if (checkResult.rowCount === 0) {
-        missingPupils.push({ first_name, last_name, merits });
+        if (addMissingPupils) {
+          const formId = await ensureForm(form_name, year_group);
+          if (formId) {
+            await pool.query(
+              `
+                INSERT INTO pupils (first_name, last_name, merits, form_id, active)
+                VALUES ($1, $2, $3, $4, TRUE)
+              `,
+              [first_name, last_name, Math.max(0, merits), formId]
+            );
+            addedPupils.push({ first_name, last_name, merits, form_name, year_group });
+          } else {
+            missingPupils.push({ first_name, last_name, merits, form_name, year_group, reason: 'Form not found' });
+          }
+        } else {
+          missingPupils.push({ first_name, last_name, merits, form_name, year_group, reason: 'Pupil not found' });
+        }
         continue;
       }
 
@@ -223,6 +287,19 @@ exports.uploadMeritsCSV = async (req, res) => {
       if (merits < pupil.merits) {
         lowerKept.push(`${first_name} ${last_name}`);
       }
+
+      if (updateFormFromCsv && form_name) {
+        const targetFormId = await ensureForm(form_name, year_group);
+        if (targetFormId && targetFormId !== pupil.form_id) {
+          await pool.query(
+            `UPDATE pupils SET form_id = $1 WHERE pupil_id = $2`,
+            [targetFormId, pupil.pupil_id]
+          );
+          formUpdates++;
+        } else if (!targetFormId && form_name) {
+          formUpdateFailures.push({ first_name, last_name, form_name, year_group });
+        }
+      }
     } catch (err) {
       console.error('DB error updating merits:', err);
     }
@@ -236,7 +313,11 @@ exports.uploadMeritsCSV = async (req, res) => {
     unchangedCount,
     ignoredCount,
     lowerKept,
-    missingPupils
+    missingPupils,
+    addedPupils,
+    createdForms,
+    formUpdates,
+    formUpdateFailures
   });
 };
 

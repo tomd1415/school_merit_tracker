@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const applyActionsBtn = document.getElementById('applyActionsBtn');
   const lowerBox = document.getElementById('lowerBox');
   const lowerList = document.getElementById('lowerList');
+  const addMissingToggle = document.getElementById('addMissingToggle');
+  const createFormsToggle = document.getElementById('createFormsToggle');
+  const updateFormToggle = document.getElementById('updateFormToggle');
 
   let forms = [];
   let lastMissing = [];
@@ -56,10 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.dataset.firstName = pupil.first_name;
       tr.dataset.lastName = pupil.last_name;
       tr.dataset.merits = pupil.merits;
+      tr.dataset.formName = pupil.form_name || '';
+      tr.dataset.yearGroup = pupil.year_group != null ? pupil.year_group : '';
 
       tr.innerHTML = `
         <td>${pupil.first_name} ${pupil.last_name}</td>
         <td>${pupil.merits}</td>
+        <td>${pupil.form_name || '-'}</td>
+        <td>${pupil.year_group != null ? pupil.year_group : '-'}</td>
+        <td>${pupil.reason || '-'}</td>
         <td>
           <select class="missing-action">
             <option value="ignore-once">Ignore once</option>
@@ -95,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formData = new FormData();
     formData.append('csvFile', file);
+    formData.append('addMissingPupils', addMissingToggle.checked ? 'true' : 'false');
+    formData.append('createForms', createFormsToggle.checked ? 'true' : 'false');
+    formData.append('updateFormFromCsv', updateFormToggle.checked ? 'true' : 'false');
 
     try {
       const response = await fetch('/upload/csv/merits', {
@@ -105,7 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await response.json();
 
       if (response.ok) {
-        const successMessage = result.message || `Upload complete. Updated ${result.updatedCount ?? 0} pupil(s).`;
+        const parts = [];
+        parts.push(result.message || 'Upload complete.');
+        if (result.updatedCount != null) parts.push(`Updated ${result.updatedCount}`);
+        if (result.addedPupils) parts.push(`Added ${result.addedPupils.length}`);
+        if (result.createdForms) parts.push(`New forms ${result.createdForms.length}`);
+        if (result.formUpdates != null) parts.push(`Form updates ${result.formUpdates}`);
+        const successMessage = parts.join(' • ');
         setMessage(successMessage, 'success');
         csvFileInput.value = '';
         renderMissing(result.missingPupils || []);
@@ -136,6 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const first_name = row.dataset.firstName;
       const last_name = row.dataset.lastName;
       const merits = row.dataset.merits;
+      const form_name = row.dataset.formName;
+      const year_group = row.dataset.yearGroup;
 
       if (action === 'add') {
         if (!formId) {
@@ -144,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         row.classList.remove('row-error');
-        toAdd.push({ first_name, last_name, merits, form_id: formId });
+        toAdd.push({ first_name, last_name, merits, form_id: formId, form_name, year_group });
       } else if (action === 'ignore-forever') {
         toIgnore.push({ first_name, last_name });
       }
