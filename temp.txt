@@ -1,0 +1,7 @@
+Input.csv is an example of the CSV that I get to import the merit totals into the database. Please add an option for importing a file like this that also creates the pupil if they do not already exist and assigns them a form group based on the data in a CSV file like this. If the form group does not already exist then that should be created as well. The year group is also in the CSV. Also if the form group in the CSV and on this system for a pupil does not match change the form group for that pupil to the one on the CSV file.
+I would like all of the above as toggleable options on the 'Upload APs CSV' page. so that it can:
+1. Just update the APs and act as it currently does.
+2. Automatically adds missing pupils and assigns them a form based on the CSV - report back to user 'no form' if form cannot be found
+3. As 2 but add new forms
+4. Everything
+Remember - never reduce the number of merits for a pupil.

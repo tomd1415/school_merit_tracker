@@ -23,7 +23,8 @@ router.get('/merits', requireFullAccess, csvController.showUploadMeritsCSVPage);
 
 // Add a new route for "upload merits CSV"
 router.post('/merits', requireFullAccess, upload.single('csvFile'), csvController.uploadMeritsCSV);
+router.post('/merits/ignore', requireFullAccess, csvController.ignoreMeritPupils);
+router.post('/merits/add', requireFullAccess, csvController.addMissingPupil);
 
 
 module.exports = router;
-

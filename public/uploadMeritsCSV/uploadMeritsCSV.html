@@ -26,9 +26,29 @@
       </form>
       <div id="uploadMessage" class="feedback-message"></div>
 
-      <div id="errorBox" class="error-box">
-        <h3>Could Not Update These Pupils (Not Found):</h3>
-        <ul id="errorList"></ul>
+      <div id="lowerBox" class="info-box" style="display:none;">
+        <h3>Kept Higher Existing APs</h3>
+        <p>The CSV contained lower APs for these pupils; their higher existing totals were kept.</p>
+        <ul id="lowerList"></ul>
+      </div>
+
+      <div id="missingBox" class="error-box" style="display:none;">
+        <h3>Pupils Not Found</h3>
+        <p>Select an action for each missing pupil.</p>
+        <div class="table-wrapper">
+          <table class="simple-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>APs</th>
+                <th>Action</th>
+                <th>Form (for Add)</th>
+              </tr>
+            </thead>
+            <tbody id="missingTableBody"></tbody>
+          </table>
+        </div>
+        <button id="applyActionsBtn" class="primary-btn" type="button">Apply actions</button>
       </div>
     </section>
   </main>
