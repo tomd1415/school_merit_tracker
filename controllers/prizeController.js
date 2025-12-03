@@ -261,55 +261,47 @@ exports.editPrize = async (req, res) => {
     image_path = '/images/' + req.file.filename;
   }
 
-  // 1) If total_stocked_ever is provided, parse it and update
-  if (typeof total_stocked_ever !== 'undefined') {
-    const newTSE = parseInt(total_stocked_ever, 10);
-    if (isNaN(newTSE)) {
-      return res.status(400).json({ error: 'total_stocked_ever must be an integer' });
-    }
-    await pool.query(`
-      UPDATE prizes
-         SET total_stocked_ever = $1
-       WHERE prize_id = $2
-    `, [newTSE, id]);
-  }
-
-  // 2) For the rest, if a field is omitted, we could keep its old value
-  //    or treat an undefined as "no change." Let's do "no change" by
-  //    reading the existing row from DB first:
-  const prizeResult = await pool.query('SELECT * FROM prizes WHERE prize_id = $1', [id]);
-  if (prizeResult.rowCount === 0) {
-    return res.status(404).json({ error: 'Prize not found' });
-  }
-  const existing = prizeResult.rows[0];
-
-  // If user didn't provide cost_merits, fall back to existing
-  if (typeof cost_merits === 'undefined') cost_merits = existing.cost_merits;
-  // If user didn't provide cost_money, fall back to existing
-  if (typeof cost_money === 'undefined') cost_money = existing.cost_money;
-  // If user didn’t provide active, fall back to existing
-  if (typeof active === 'undefined') active = existing.active;
-  // If user didn't provide is_cycle_limited, fall back
-  if (typeof is_cycle_limited === 'undefined') is_cycle_limited = existing.is_cycle_limited;
-  // If user didn't provide spaces_per_cycle, fall back
-  if (typeof spaces_per_cycle === 'undefined') spaces_per_cycle = existing.spaces_per_cycle;
-  // If user didn't provide cycle_weeks, fall back
-  if (typeof cycle_weeks === 'undefined') cycle_weeks = existing.cycle_weeks;
-  // If user didn't provide reset_day_iso, fall back
-  if (typeof reset_day_iso === 'undefined') reset_day_iso = existing.reset_day_iso;
-  // If user didn’t provide description, fallback
-  if (typeof description === 'undefined') description = existing.description;
-  // If user didn’t provide image_path in body or file, fallback
-  if (!req.file && !req.body.image_path) image_path = existing.image_path;
-
-  // Parse boolean + integers with bounds
-  is_cycle_limited = (is_cycle_limited === 'true' || is_cycle_limited === true || is_cycle_limited === 'on' || is_cycle_limited === 1 || is_cycle_limited === '1');
-  spaces_per_cycle = Math.max(0, parseInt(spaces_per_cycle, 10) || 0);
-  cycle_weeks = Math.min(52, Math.max(0, parseInt(cycle_weeks, 10) || 0));
-  reset_day_iso = Math.min(7, Math.max(1, parseInt(reset_day_iso, 10) || 1));
-
-  // 3) Now do the final update for all these fields
   try {
+    // 1) If total_stocked_ever is provided, parse it and update
+    if (typeof total_stocked_ever !== 'undefined') {
+      const newTSE = parseInt(total_stocked_ever, 10);
+      if (isNaN(newTSE)) {
+        return res.status(400).json({ error: 'total_stocked_ever must be an integer' });
+      }
+      await pool.query(
+        `
+          UPDATE prizes
+             SET total_stocked_ever = $1
+           WHERE prize_id = $2
+        `,
+        [newTSE, id]
+      );
+    }
+
+    // 2) For the rest, if a field is omitted, keep its existing value
+    const prizeResult = await pool.query('SELECT * FROM prizes WHERE prize_id = $1', [id]);
+    if (prizeResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Prize not found' });
+    }
+    const existing = prizeResult.rows[0];
+
+    if (typeof cost_merits === 'undefined') cost_merits = existing.cost_merits;
+    if (typeof cost_money === 'undefined') cost_money = existing.cost_money;
+    if (typeof active === 'undefined') active = existing.active;
+    if (typeof is_cycle_limited === 'undefined') is_cycle_limited = existing.is_cycle_limited;
+    if (typeof spaces_per_cycle === 'undefined') spaces_per_cycle = existing.spaces_per_cycle;
+    if (typeof cycle_weeks === 'undefined') cycle_weeks = existing.cycle_weeks;
+    if (typeof reset_day_iso === 'undefined') reset_day_iso = existing.reset_day_iso;
+    if (typeof description === 'undefined') description = existing.description;
+    if (!req.file && !req.body.image_path) image_path = existing.image_path;
+
+    // Parse boolean + integers with bounds
+    is_cycle_limited = (is_cycle_limited === 'true' || is_cycle_limited === true || is_cycle_limited === 'on' || is_cycle_limited === 1 || is_cycle_limited === '1');
+    spaces_per_cycle = Math.max(0, parseInt(spaces_per_cycle, 10) || 0);
+    cycle_weeks = Math.min(52, Math.max(0, parseInt(cycle_weeks, 10) || 0));
+    reset_day_iso = Math.min(7, Math.max(1, parseInt(reset_day_iso, 10) || 1));
+
+    // 3) Now do the final update for all these fields
     const updateQuery = `
       UPDATE prizes
          SET description  = $1,

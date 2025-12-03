@@ -5,6 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
+const crypto = require('crypto');
 const app = express();
 const prizeRoutes = require('./routes/prizeRoutes');
 const csvRoutes = require('./routes/csvRoutes');
@@ -17,9 +18,14 @@ const { requireFullAccess } = require('./middlewares/auth');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.SESSION_SECRET) {
+  console.warn('SESSION_SECRET is not set; using a random secret for this run. Set SESSION_SECRET in the environment for stable sessions.');
+}
+
 // Initialize session BEFORE routes
 app.use(session({
-  secret: 'hskKY46hssppqiu99she527h',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {

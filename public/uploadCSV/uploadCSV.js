@@ -32,9 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
-        messageEl.textContent = result.message || 'Upload successful!';
+        const successMessage = result.message || `Upload successful! Inserted ${result.insertedCount ?? 0}, skipped ${result.skippedCount ?? 0}.`;
+        messageEl.textContent = successMessage;
         messageEl.className = 'feedback-message success';
         // Clear the file input
         document.getElementById('csvFile').value = '';
@@ -49,4 +50,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-

@@ -77,63 +77,97 @@ exports.searchPupil = async (req, res) => {
 
 // 4) Create a Purchase (deduct merits)
 exports.createPurchase = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { prize_id, pupil_id } = req.body;
 
-    // 1) Get the prize cost and current stock position
-    const prizeCheck = await pool.query(`
+    await client.query('BEGIN');
+
+    // 1) Lock the prize row and get current stock atomically
+    const prizeCheck = await client.query(`
       SELECT 
         p.cost_merits,
         p.is_cycle_limited,
         p.spaces_per_cycle,
         p.cycle_weeks,
         p.reset_day_iso,
-        COALESCE(ps.current_stock, 0) AS current_stock
+        CASE
+          WHEN p.is_cycle_limited THEN
+            GREATEST(
+              p.spaces_per_cycle -
+              (
+                SELECT COUNT(pu.purchase_id)
+                  FROM purchase pu
+                 WHERE pu.prize_id = p.prize_id
+                   AND pu.active = TRUE
+                   AND pu.date >= prize_cycle_start(p.reset_day_iso, p.cycle_weeks)
+              ),
+              0
+            )
+          ELSE
+            p.total_stocked_ever + p.stock_adjustment -
+            (
+              SELECT COUNT(pu.purchase_id)
+                FROM purchase pu
+               WHERE pu.prize_id = p.prize_id
+                 AND pu.active = TRUE
+            )
+        END AS current_stock
       FROM prizes p
-      LEFT JOIN prize_stock ps ON ps.prize_id = p.prize_id
       WHERE p.prize_id = $1 AND p.active = TRUE
-      GROUP BY p.prize_id, p.cost_merits, p.is_cycle_limited, p.spaces_per_cycle, p.cycle_weeks, p.reset_day_iso, ps.current_stock
+      FOR UPDATE
     `, [prize_id]);
     if (prizeCheck.rowCount === 0) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Invalid or inactive prize' });
     }
     const { cost_merits, current_stock, is_cycle_limited } = prizeCheck.rows[0];
 
     if ((current_stock ?? 0) <= 0) {
+      await client.query('ROLLBACK');
       const msg = is_cycle_limited ? 'No spaces left this cycle.' : 'This prize is out of stock.';
       return res.status(400).json({ error: msg });
     }
 
-    // 2) Check pupil's current *remaining* merits using the view
-    //    pupil_remaining_merits has "pupil_id" and "remaining_merits"
-    const remainCheck = await pool.query(`
-      SELECT remaining_merits
-      FROM pupil_remaining_merits
-      WHERE pupil_id = $1
+    // 2) Check pupil's current remaining APs with row lock
+    const remainCheck = await client.query(`
+      SELECT 
+        p.merits - COALESCE(
+          (SELECT SUM(pu.merit_cost_at_time)
+             FROM purchase pu
+            WHERE pu.pupil_id = p.pupil_id
+              AND pu.active = TRUE),
+          0
+        ) AS remaining_merits
+      FROM pupils p
+      WHERE p.pupil_id = $1 AND p.active = TRUE
+      FOR UPDATE
     `, [pupil_id]);
     if (remainCheck.rowCount === 0) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Invalid or inactive pupil' });
     }
     const currentRemaining = remainCheck.rows[0].remaining_merits;
 
     // 3) Ensure pupil has enough remaining APs
     if (currentRemaining < cost_merits) {
+      await client.query('ROLLBACK');
       return res.status(400).json({
         error: `Not enough APs. Pupil has ${currentRemaining} left, needs ${cost_merits}.`
       });
     }
 
     // 4) Insert into purchase (do NOT update pupils.merits)
-    const insertResult = await pool.query(`
+    const insertResult = await client.query(`
       INSERT INTO purchase (pupil_id, prize_id, merit_cost_at_time, date, status, active)
       VALUES ($1, $2, $3, NOW(), 'pending', TRUE)
       RETURNING purchase_id, status
     `, [pupil_id, prize_id, cost_merits]);
 
-    // This is the newly created purchase ID
+    await client.query('COMMIT');
+
     const { purchase_id: newPurchaseId, status } = insertResult.rows[0];
 
-    // Return both newRemaining and newPurchaseId so front-end can track it
     return res.json({ 
       success: true, 
       newRemaining: currentRemaining - cost_merits,
@@ -141,8 +175,11 @@ exports.createPurchase = async (req, res) => {
       status
     });
   } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Error creating purchase:', err);
     res.status(500).json({ error: 'Failed to create purchase' });
+  } finally {
+    client.release();
   }
 };
 // controllers/purchaseController.js

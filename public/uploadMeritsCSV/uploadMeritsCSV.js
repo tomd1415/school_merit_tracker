@@ -45,15 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
-        messageEl.textContent = result.message || 'Upload successful!';
+        const successMessage = result.message || `Upload successful! Updated ${result.updatedCount ?? 0} pupil(s).`;
+        messageEl.textContent = successMessage;
         messageEl.className = 'feedback-message success';
         // Clear the file input
         document.getElementById('csvFile').value = '';
         
         // Show not found pupils if any
-        if (result.notFoundPupils && result.notFoundPupils.length > 0) {
+        if (Array.isArray(result.notFoundPupils) && result.notFoundPupils.length > 0) {
           errorList.innerHTML = '';
           result.notFoundPupils.forEach(pupil => {
             const li = document.createElement('li');
@@ -73,4 +74,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
