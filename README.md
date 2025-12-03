@@ -18,6 +18,7 @@ A Node.js + Express + PostgreSQL app for running the school's AP reward system. 
   - `purchase` role: access purchase flow and orders.
   - `full` role: access everything.
 - PINs come from `.env` (`PURCHASE_PIN`, `FULL_PIN`). Session is stored in memory with 1-hour expiry.
+- Session secret comes from `.env` (`SESSION_SECRET`). If missing, a random secret is generated at runtime (sessions reset on restart); set it for production.
 
 ---
 
@@ -92,12 +93,19 @@ Existing databases should run:
   - View pending/all, filter by year/form/pupil/date, mark collected, or refund (returns APs).
 - Pupils/forms (`/pupils`, `/forms`): CRUD and activate/deactivate.
 - CSV uploads:
-  - `/upload/csv/pupils` for bulk pupils, `/upload/csv/merits` for AP top-ups.
+  - `/upload/csv/pupils`: upload `first_name,last_name,form_id`; skips duplicates.
+  - `/upload/csv/merits`: accepts raw “Name, Points, Form Group, Year Group” CSV (aggregates multiple rows per pupil) or converted `first_name,last_name,merits`. Options on the page:
+    - Auto-add missing pupils if their form exists.
+    - Auto-create missing forms (uses Year Group from CSV).
+    - Update existing pupil form to the CSV form.
+    - Ignore missing pupils once or forever.
+    - APs never decrease; kept-higher APs are reported; missing items include reasons.
 
 ## 7) Operations & maintenance
 - Migrations: Always run new files in `migrations/` after pulling updates.
 - Backups: Back up the Postgres database before migrations or large imports.
 - Sessions: In-memory session store; for production, use a persistent store (e.g., Redis) and update `server.js`.
+- CSV import ignore list: `merit_import_ignore` stores “ignore forever” pupils for AP imports; truncate it to clear.
 - Cron: `schedulers/summaryScheduler.js` runs weekly; ensure email env/config in `services/emailService.js` if you use it.
 - Logs: stdout/stderr from Node; consider a process manager (PM2/systemd) for production.
 - Tests (current scripts): `npm run test:api`, `npm run test:smoke`, `npm run test:db`, `npm run test:all` (add data/config as needed).

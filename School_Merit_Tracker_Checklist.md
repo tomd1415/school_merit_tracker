@@ -31,7 +31,11 @@
 
 ## CSV Uploads
 - [ ] Upload Pupils CSV
-- [ ] Upload Merits CSV
+- [ ] Upload Merits CSV (basic AP update, APs never decrease)
+- [ ] Merits CSV: auto-add missing pupils
+- [ ] Merits CSV: auto-create missing forms
+- [ ] Merits CSV: update pupil form to CSV form
+- [ ] Merits CSV: ignore-forever list respected
 - [ ] Invalid CSV Test
 
 ## Database Integrity
