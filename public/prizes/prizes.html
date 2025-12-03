@@ -20,6 +20,13 @@
       <div class="button-group">
         <button id="addPrizeBtn" class="primary-btn">Add New Prize</button>
       </div>
+      <div class="view-toggle">
+        <span>View:</span>
+        <div class="toggle-pill" id="viewToggle">
+          <button data-view="table" class="active">Table</button>
+          <button data-view="pane">List + Detail</button>
+        </div>
+      </div>
       <div class="toggle-group">
         <label for="inlineEditToggle">Allow Inline Edit:</label>
         <label class="toggle-switch">
@@ -29,30 +36,38 @@
       </div>
     </div>
 
-    <div class="table-container">
-      <table id="prizeTable">
-        <thead>
-          <tr>
-            <!-- <th>Prize ID</th> -->
-            <th>Description</th>
-            <th>APs Cost</th>
-            <th>Money Cost</th>
-            <th>Stock Mode</th>
-            <th>Total Stocked Ever</th>
-            <th>Lost/Spoiled Items</th>
-            <th>Spaces / Cycle</th>
-            <th>Cycle Weeks</th>
-            <th>Reset Day</th>
-            <th>Current Stock</th>
-            <th>Image</th>
-            <th>Active</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Dynamically inserted by prizes.js -->
-        </tbody>
-      </table>
+    <div id="tableView">
+      <div class="table-container">
+        <table id="prizeTable">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>APs</th>
+              <th>Lost/Spoiled</th>
+              <th>Stock / Spaces</th>
+              <th>Mode</th>
+              <th>Active</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamically inserted by prizes.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="paneView" style="display:none;">
+      <div class="pane-layout">
+        <div class="pane-list" id="prizeList">
+          <!-- populated by prizes.js -->
+        </div>
+        <div class="pane-detail" id="prizeDetail">
+          <div class="detail-placeholder">
+            <p>Select a prize to see details.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 

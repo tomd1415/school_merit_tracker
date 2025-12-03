@@ -2,12 +2,387 @@
 
 let inlineEditEnabled = false;      // Track whether inline editing is on/off
 let allPrizes = [];                // We'll store the fetched prizes here
+let currentView = 'table';
+let selectedPrizeId = null;
 
 function isoDayName(iso) {
   const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   return names[(iso - 1 + 7) % 7] || 'Monday';
 }
 
+function renderTableView() {
+  const tbody = document.querySelector('#prizeTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  allPrizes.forEach(prize => {
+    const row = document.createElement('tr');
+    row.setAttribute('data-prize-id', prize.prize_id);
+    row.setAttribute('data-cycle-limited', prize.is_cycle_limited);
+
+  const spacesPerCycle = prize.spaces_per_cycle ?? 0;
+  const cycleWeeksValue = prize.cycle_weeks ?? 0;
+  const resetDayValue = prize.reset_day_iso ?? 1;
+  const stockModeLabel = prize.is_cycle_limited ? 'Cycle' : 'Total';
+  const stockNumber = Math.max(prize.current_stock ?? 0, 0);
+    const stockMeta = prize.is_cycle_limited
+      ? `${stockNumber}/${spacesPerCycle} left • ${formatCycleWeeks(cycleWeeksValue)} • ${isoDayName(resetDayValue)}`
+      : `${stockNumber} in stock`;
+    const addStockButton = prize.is_cycle_limited
+      ? ''
+      : `<button class="add-stock-btn" data-id="${prize.prize_id}">Add Stock</button>`;
+
+    row.innerHTML = `
+      <td data-field="description">${prize.description}</td>
+      <td data-field="cost_merits">${prize.cost_merits}</td>
+      <td data-field="stock_adjustment" data-raw="${prize.stock_adjustment}">${prize.stock_adjustment}</td>
+      <td class="current_stock">${stockMeta}</td>
+      <td data-field="is_cycle_limited" data-raw="${prize.is_cycle_limited}">${stockModeLabel}</td>
+      <td data-field="active">${prize.active}</td>
+      <td class="actions-cell">
+        ${addStockButton}
+        <button class="edit-btn" data-id="${prize.prize_id}">Edit</button>
+        <button class="delete-btn" data-id="${prize.prize_id}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  applyInlineEditing();
+  initTableScrollHint();
+}
+
+function renderPaneView() {
+  const list = document.getElementById('prizeList');
+  const detail = document.getElementById('prizeDetail');
+  if (!list || !detail) return;
+  list.innerHTML = '';
+
+  allPrizes.forEach(prize => {
+    const stockNumber = Math.max(prize.current_stock ?? 0, 0);
+    const spacesPerCycle = prize.spaces_per_cycle ?? 0;
+    const chipText = prize.is_cycle_limited
+      ? `${stockNumber}/${spacesPerCycle}`
+      : `${stockNumber} in stock`;
+    const item = document.createElement('div');
+    item.className = 'prize-item';
+    if (selectedPrizeId === prize.prize_id) {
+      item.classList.add('active');
+    }
+    item.dataset.id = prize.prize_id;
+    item.innerHTML = `
+      <div>
+        <div class="title">${prize.description}</div>
+        <div class="meta">${prize.cost_merits} APs • ${prize.is_cycle_limited ? 'Cycle' : 'Total'} • ${prize.active ? 'Active' : 'Inactive'}</div>
+      </div>
+      <div class="stock-chip ${stockNumber <= 0 ? 'empty' : ''}">${chipText}</div>
+    `;
+    item.addEventListener('click', () => {
+      selectedPrizeId = prize.prize_id;
+      renderPaneView();
+      renderPrizeDetail(prize.prize_id);
+    });
+    list.appendChild(item);
+  });
+
+  if (!selectedPrizeId && allPrizes.length) {
+    selectedPrizeId = allPrizes[0].prize_id;
+  }
+  renderPrizeDetail(selectedPrizeId);
+}
+
+function renderPrizeDetail(prizeId) {
+  const detail = document.getElementById('prizeDetail');
+  if (!detail) return;
+  const prize = allPrizes.find(p => p.prize_id === prizeId);
+  if (!prize) {
+    detail.innerHTML = '<div class="detail-placeholder"><p>Select a prize to see details.</p></div>';
+    return;
+  }
+
+  const stockNumber = Math.max(prize.current_stock ?? 0, 0);
+  const spacesPerCycle = prize.spaces_per_cycle ?? 0;
+  const cycleWeeksValue = prize.cycle_weeks ?? 0;
+  const resetDayValue = prize.reset_day_iso ?? 1;
+  const moneyValue = typeof prize.cost_money === 'number' ? prize.cost_money : 0;
+
+  const stockLabel = prize.is_cycle_limited
+    ? `${stockNumber} of ${spacesPerCycle} spaces`
+    : `${stockNumber} in stock`;
+
+  const modePill = prize.is_cycle_limited
+    ? `<span class="pill">Cycle • ${formatCycleWeeksVerbose(cycleWeeksValue)} • ${isoDayName(resetDayValue)}</span>`
+    : `<span class="pill success">Total stock</span>`;
+
+  const inline = inlineEditEnabled;
+  detail.innerHTML = `
+    <div class="detail-header">
+      <div>
+        ${inline
+          ? `<div class="detail-inline-group">
+                <label>Description</label>
+                <input class="detail-inline" id="detailDesc" value="${prize.description}">
+             </div>`
+          : `<h2>${prize.description}</h2>`}
+        <div class="meta">
+          ${inline
+            ? `<div class="detail-inline-group">
+                  <label>AP Cost</label>
+                  <input class="detail-inline" id="detailAPCost" type="number" min="0" value="${prize.cost_merits}">
+               </div>
+               <div class="detail-inline-group">
+                  <label>Money Cost (£)</label>
+                  <input class="detail-inline" id="detailMoneyCost" type="number" min="0" step="0.01" value="${(moneyValue/100).toFixed(2)}">
+               </div>`
+            : `${prize.cost_merits} APs • £${(moneyValue / 100).toFixed(2)}`}
+           • ${prize.active ? 'Active' : 'Inactive'}
+        </div>
+        ${inline
+          ? `<div class="detail-inline-group">
+                <label>Status</label>
+                <label class="toggle-switch"><input type="checkbox" id="detailActiveToggle" ${prize.active ? 'checked' : ''}><span class="toggle-slider"></span></label>
+             </div>`
+          : ''}
+        ${inline
+          ? `<div class="detail-inline-group">
+                <label>Stock Mode</label>
+                <div class="toggle-pill" id="detailModeToggle">
+                  <button type="button" data-mode="total" class="${prize.is_cycle_limited ? '' : 'active'}">Total</button>
+                  <button type="button" data-mode="cycle" class="${prize.is_cycle_limited ? 'active' : ''}">Cycle</button>
+                </div>
+             </div>`
+          : modePill}
+      </div>
+      <div class="detail-actions">
+        ${!prize.is_cycle_limited ? `<button class="add-stock-btn" data-id="${prize.prize_id}">Add Stock</button>` : ''}
+        <button class="edit-btn" data-id="${prize.prize_id}">Edit</button>
+        <button class="delete-btn" data-id="${prize.prize_id}">Delete</button>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-card">
+        <div class="detail-label">Stock / Spaces</div>
+        <div class="detail-value">${stockLabel}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">Lost / Spoiled</div>
+        <div class="detail-value">
+          ${prize.stock_adjustment}
+          ${inline ? `<div class="detail-inline-control">
+            <input type="number" id="detailSpoiled" placeholder="Lost / spoiled" />
+            <button class="action-btn ghost-btn" id="detailSpoiledApply">Apply</button>
+          </div>` : ''}
+        </div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">Total Stocked Ever</div>
+        <div class="detail-value">${prize.total_stocked_ever}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">Spaces per Cycle</div>
+        <div class="detail-value">
+          ${prize.is_cycle_limited ? spacesPerCycle : '—'}
+          ${inline && prize.is_cycle_limited ? `<input class="detail-inline" id="detailSpaces" type="number" min="0" value="${spacesPerCycle}">` : ''}
+        </div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">Cycle Weeks</div>
+        <div class="detail-value">
+          ${prize.is_cycle_limited ? formatCycleWeeksVerbose(cycleWeeksValue) : '—'}
+          ${inline && prize.is_cycle_limited ? `<input class="detail-inline" id="detailCycleWeeks" type="number" min="0" max="52" value="${cycleWeeksValue}">` : ''}
+        </div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">Reset Day</div>
+        <div class="detail-value">
+          ${prize.is_cycle_limited ? isoDayName(resetDayValue) : '—'}
+          ${inline && prize.is_cycle_limited ? `
+            <select class="detail-inline" id="detailResetDay">
+              ${[1,2,3,4,5,6,7].map(d => `<option value="${d}" ${d === resetDayValue ? 'selected' : ''}>${isoDayName(d)}</option>`).join('')}
+            </select>` : ''}
+        </div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">Image</div>
+        <div class="detail-value">
+          <img src="${prize.image_path}" alt="Prize image" style="max-width:120px;height:auto;border-radius:8px;">
+          ${inline ? `<div class="detail-inline-group" style="max-width:220px;">
+            <label>Replace image</label>
+            <input type="file" id="detailImageInput" accept="image/*">
+          </div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  detail.querySelectorAll('.add-stock-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await promptAddStock(prize.prize_id);
+    });
+  });
+  detail.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditPrizeModal(prize.prize_id));
+  });
+  detail.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete this prize?')) {
+        await deletePrize(prize.prize_id);
+        await loadPrizes();
+      }
+    });
+  });
+
+  if (inlineEditEnabled) {
+    wireDetailInline(prize);
+  }
+}
+
+function switchView(view) {
+  currentView = view;
+  const tableView = document.getElementById('tableView');
+  const paneView = document.getElementById('paneView');
+  if (tableView && paneView) {
+    tableView.style.display = view === 'table' ? 'block' : 'none';
+    paneView.style.display = view === 'pane' ? 'block' : 'none';
+  }
+  const buttons = document.querySelectorAll('#viewToggle button');
+  buttons.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+  });
+
+  if (view === 'table') {
+    renderTableView();
+  } else {
+    if (!selectedPrizeId && allPrizes.length) {
+      selectedPrizeId = allPrizes[0].prize_id;
+    }
+    renderPaneView();
+  }
+}
+
+function wireDetailInline(prize) {
+  const desc = document.getElementById('detailDesc');
+  if (desc) {
+    desc.addEventListener('blur', async () => {
+      const val = desc.value.trim();
+      if (val && val !== prize.description) {
+        await updatePrizeField(prize.prize_id, 'description', val);
+      }
+    });
+  }
+
+  const apInput = document.getElementById('detailAPCost');
+  if (apInput) {
+    apInput.addEventListener('blur', async () => {
+      const num = parseInt(apInput.value, 10);
+      if (!isNaN(num) && num >= 0 && num !== prize.cost_merits) {
+        await updatePrizeField(prize.prize_id, 'cost_merits', num);
+      }
+    });
+  }
+
+  const moneyInput = document.getElementById('detailMoneyCost');
+  if (moneyInput) {
+    moneyInput.addEventListener('blur', async () => {
+      const num = parseFloat(moneyInput.value);
+      if (!isNaN(num) && num >= 0) {
+        const pence = Math.round(num * 100);
+        if (pence !== prize.cost_money) {
+          await updatePrizeField(prize.prize_id, 'cost_money', pence);
+        }
+      }
+    });
+  }
+
+  const activeToggle = document.getElementById('detailActiveToggle');
+  if (activeToggle) {
+    activeToggle.addEventListener('change', async () => {
+      await updatePrizeField(prize.prize_id, 'active', activeToggle.checked);
+    });
+  }
+
+  const modeToggle = document.getElementById('detailModeToggle');
+  if (modeToggle) {
+    modeToggle.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const mode = btn.getAttribute('data-mode');
+        const wantCycle = mode === 'cycle';
+        if (wantCycle !== !!prize.is_cycle_limited) {
+          await updateStockMode(prize.prize_id, wantCycle);
+        }
+      });
+    });
+  }
+
+  const spacesInput = document.getElementById('detailSpaces');
+  if (spacesInput) {
+    spacesInput.addEventListener('blur', async () => {
+      const num = parseInt(spacesInput.value, 10);
+      if (!isNaN(num) && num >= 0 && num !== prize.spaces_per_cycle) {
+        await updatePrizeField(prize.prize_id, 'spaces_per_cycle', num);
+      }
+    });
+  }
+
+  const cycleWeeksInput = document.getElementById('detailCycleWeeks');
+  if (cycleWeeksInput) {
+    cycleWeeksInput.addEventListener('blur', async () => {
+      const num = parseInt(cycleWeeksInput.value, 10);
+      const safe = Math.min(52, Math.max(0, isNaN(num) ? 0 : num));
+      if (safe !== prize.cycle_weeks) {
+        await updatePrizeField(prize.prize_id, 'cycle_weeks', safe);
+      }
+    });
+  }
+
+  const resetDaySelect = document.getElementById('detailResetDay');
+  if (resetDaySelect) {
+    resetDaySelect.addEventListener('change', async () => {
+      const num = parseInt(resetDaySelect.value, 10);
+      if (!isNaN(num) && num !== prize.reset_day_iso) {
+        await updatePrizeField(prize.prize_id, 'reset_day_iso', num);
+      }
+    });
+  }
+
+  const spoiledInput = document.getElementById('detailSpoiled');
+  const spoiledBtn = document.getElementById('detailSpoiledApply');
+  if (spoiledInput && spoiledBtn) {
+    spoiledBtn.addEventListener('click', async () => {
+      const num = parseInt(spoiledInput.value, 10);
+      if (isNaN(num) || num <= 0) {
+        alert('Enter a positive number of lost/spoiled items.');
+        return;
+      }
+      // Positive input reduces stock: send negative adjustment
+      await updatePrizeField(prize.prize_id, 'stock_adjustment', -Math.abs(num));
+    });
+  }
+
+  const imageInput = document.getElementById('detailImageInput');
+  if (imageInput) {
+    imageInput.addEventListener('change', async () => {
+      if (!imageInput.files || !imageInput.files[0]) return;
+      const formData = new FormData();
+      formData.append('image', imageInput.files[0]);
+      try {
+        const resp = await fetch(`/prizes/edit/${prize.prize_id}`, {
+          method: 'POST',
+          body: formData
+        });
+        if (!resp.ok) {
+          const body = await resp.json().catch(() => ({}));
+          alert(body.error || 'Error uploading image');
+          return;
+        }
+        await loadPrizes();
+      } catch (err) {
+        console.error('Image upload failed:', err);
+        alert('Error uploading image.');
+      }
+    });
+  }
+}
 function formatCycleWeeks(weeks) {
   const safeWeeks = Math.max(0, parseInt(weeks, 10) || 0);
   return safeWeeks === 0 ? 'Weekly' : `${safeWeeks} wk${safeWeeks === 1 ? '' : 's'}`;
@@ -54,6 +429,8 @@ window.addEventListener('DOMContentLoaded', () => {
       inlineEditEnabled = inlineEditToggle.checked;
       // Re-render or just enable/disable editing on existing rows
       applyInlineEditing();
+      renderTableView();
+      renderPaneView();
     });
   }
 
@@ -105,6 +482,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 11) Subtle scroll hint on table
   initTableScrollHint();
+
+  // 12) View toggle (table vs pane)
+  const viewToggle = document.getElementById('viewToggle');
+  if (viewToggle) {
+    viewToggle.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() === 'button') {
+        const target = e.target.getAttribute('data-view');
+        if (target) {
+          switchView(target);
+        }
+      }
+    });
+  }
 });
 
 /**
@@ -116,64 +506,8 @@ async function loadPrizes() {
     if (!response.ok) throw new Error('Network error loading prizes');
     allPrizes = await response.json();
 
-    const tbody = document.querySelector('#prizeTable tbody');
-    tbody.innerHTML = '';
-
-    allPrizes.forEach(prize => {
-      // Create a row
-      const row = document.createElement('tr');
-      row.setAttribute('data-prize-id', prize.prize_id);
-      row.setAttribute('data-cycle-limited', prize.is_cycle_limited);
-
-      const spacesPerCycle = prize.spaces_per_cycle ?? 0;
-      const cycleWeeksValue = prize.cycle_weeks ?? 0;
-      const resetDayValue = prize.reset_day_iso ?? 1;
-      const stockModeLabel = prize.is_cycle_limited ? 'Cycle' : 'Total';
-      const totalStockDisplay = prize.is_cycle_limited ? '—' : prize.total_stocked_ever;
-      const spoiledDisplay = prize.is_cycle_limited ? '—' : prize.stock_adjustment;
-      const spacesDisplay = prize.is_cycle_limited ? spacesPerCycle : '—';
-      const cycleWeeksDisplay = prize.is_cycle_limited ? formatCycleWeeks(cycleWeeksValue) : '—';
-      const resetDayDisplay = prize.is_cycle_limited ? isoDayName(resetDayValue) : '—';
-      const stockNumber = Math.max(prize.current_stock ?? 0, 0);
-      const currentStockDisplay = prize.is_cycle_limited
-        ? `${stockNumber} / ${spacesPerCycle} left`
-        : `${stockNumber}`;
-      const addStockButton = prize.is_cycle_limited
-        ? ''
-        : `<button class="add-stock-btn" data-id="${prize.prize_id}">Add Stock</button>`;
-
-      // Build columns (ensure your prizes.html has matching <th>!)
-      // We'll store data in 'data-field' attributes for inline editing
-      row.innerHTML = `
-        <!-- <td>${prize.prize_id}</td> -->
-        <td data-field="description">${prize.description}</td>
-        <td data-field="cost_merits">${prize.cost_merits}</td>
-        <td data-field="cost_money">${prize.cost_money}</td>
-        <td data-field="is_cycle_limited" data-raw="${prize.is_cycle_limited}">${stockModeLabel}</td>
-        <td data-field="total_stocked_ever" data-raw="${prize.total_stocked_ever}">${totalStockDisplay}</td>
-        <td data-field="stock_adjustment" data-raw="${prize.stock_adjustment}">${spoiledDisplay}</td>
-        <td data-field="spaces_per_cycle" data-raw="${spacesPerCycle}">${spacesDisplay}</td>
-        <td data-field="cycle_weeks" data-raw="${cycleWeeksValue}">${cycleWeeksDisplay}</td>
-        <td data-field="reset_day_iso" data-raw="${resetDayValue}">${resetDayDisplay}</td>
-        <td class="current_stock">${currentStockDisplay}</td>
-        <td data-field="image_path">
-          <img src="${prize.image_path}" alt="Prize Image" style="width:50px;height:auto;">
-        </td>
-        <td data-field="active">${prize.active}</td>
-        <td class="actions-cell">
-          ${addStockButton}
-          <div class="action-stack">
-            <button class="edit-btn" data-id="${prize.prize_id}">Edit</button>
-            <button class="delete-btn" data-id="${prize.prize_id}">Delete</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-
-    // Now apply or remove inline editing
-    applyInlineEditing();
-    initTableScrollHint();
+    renderTableView();
+    renderPaneView();
   } catch (err) {
     console.error('Error loading prizes:', err);
   }
