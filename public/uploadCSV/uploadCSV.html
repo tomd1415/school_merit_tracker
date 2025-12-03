@@ -25,6 +25,24 @@
         <button type="submit" class="primary-btn">Upload</button>
       </form>
       <div id="uploadMessage" class="feedback-message"></div>
+      <div id="missingFormsBox" class="error-box" style="display:none;">
+        <h3>Forms not found (these pupils were skipped):</h3>
+        <ul id="missingFormsList"></ul>
+      </div>
+      <div class="info-box static" style="margin-top:16px;">
+        <h3>CSV format</h3>
+        <p>Accepted columns (case-insensitive):</p>
+        <ul>
+          <li><code>first_name</code>, <code>last_name</code>, <code>form_id</code> (use the numeric form ID), or</li>
+          <li><code>first_name</code>, <code>last_name</code>, <code>form_name</code> (uses an existing form name), or</li>
+          <li><code>Name</code> and <code>Form Group</code> (e.g., "7OHA")</li>
+        </ul>
+        <p>Only existing forms are used; missing forms are listed and those pupils are skipped.</p>
+        <p>Example:</p>
+<pre><code>first_name,last_name,form_name
+Alice,Smith,7OHA
+Bob,Jones,7MDU</code></pre>
+      </div>
     </section>
   </main>
 

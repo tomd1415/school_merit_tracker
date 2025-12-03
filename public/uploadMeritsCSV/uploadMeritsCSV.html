@@ -61,6 +61,22 @@
         </div>
         <button id="applyActionsBtn" class="primary-btn" type="button">Apply actions</button>
       </div>
+      <div class="info-box static" style="margin-top:16px;">
+        <h3>CSV formats</h3>
+        <p>You can upload either of the following:</p>
+        <ul>
+          <li><strong>Raw export</strong>: columns <code>Name</code>, <code>Points</code>, optional <code>Form Group</code>, <code>Year Group</code>.</li>
+          <li><strong>Converted</strong>: columns <code>first_name</code>, <code>last_name</code>, <code>merits</code>, optional <code>form_name</code>, <code>year_group</code>.</li>
+        </ul>
+        <p>Multiple rows per pupil are aggregated. APs never decrease.</p>
+        <p>Examples:</p>
+<pre><code>Name,Points,Form Group,Year Group
+Alice Smith,5,7OHA,7
+Bob Jones,3,7MDU,7</code></pre>
+<pre><code>first_name,last_name,merits,form_name,year_group
+Alice,Smith,5,7OHA,7
+Bob,Jones,3,7MDU,7</code></pre>
+      </div>
     </section>
   </main>
 

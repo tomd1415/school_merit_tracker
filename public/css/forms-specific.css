@@ -95,6 +95,10 @@ section h2 {
   border-radius: var(--border-radius);
 }
 
+.info-box.static {
+  display: block;
+}
+
 .simple-table {
   width: 100%;
   border-collapse: collapse;

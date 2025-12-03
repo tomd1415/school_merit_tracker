@@ -57,13 +57,42 @@ exports.uploadPupilCSV = async (req, res) => {
 
     let insertedCount = 0;
     let skippedCount = 0;
+    const missingForms = new Set();
+
+    const formRows = await pool.query('SELECT form_id, form_name FROM form WHERE active = TRUE');
+    const formMap = new Map(formRows.rows.map(f => [f.form_name.trim().toLowerCase(), f.form_id]));
 
     for (const row of rows) {
-      const first_name = row.first_name?.trim();
-      const last_name = row.last_name?.trim();
-      const form_id = row.form_id ? parseInt(row.form_id, 10) : null;
+      // Accept either first_name/last_name OR combined Name column
+      let first_name = (row.first_name || '').trim();
+      let last_name = (row.last_name || '').trim();
+      if ((!first_name || !last_name) && row.Name) {
+        const parts = row.Name.trim().split(/\s+/, 2);
+        first_name = parts[0] || '';
+        last_name = parts[1] || '';
+      }
 
-      if (!first_name || !last_name || !form_id) {
+      const formIdRaw = row.form_id ? parseInt(row.form_id, 10) : null;
+      const formNameRaw = (row.form_name || row.form || row['Form Group'] || '').toString().trim();
+      let form_id = formIdRaw;
+
+      if (!first_name || !last_name) {
+        skippedCount++;
+        continue;
+      }
+
+      if (!form_id && formNameRaw) {
+        const match = formMap.get(formNameRaw.toLowerCase());
+        if (match) {
+          form_id = match;
+        } else {
+          missingForms.add(formNameRaw);
+          skippedCount++;
+          continue;
+        }
+      }
+
+      if (!form_id) {
         skippedCount++;
         continue;
       }
@@ -99,7 +128,8 @@ exports.uploadPupilCSV = async (req, res) => {
     return res.json({
       message: `Upload complete. Inserted: ${insertedCount}, Skipped (duplicates or invalid): ${skippedCount}.`,
       insertedCount,
-      skippedCount
+      skippedCount,
+      missingForms: Array.from(missingForms)
     });
   } catch (err) {
     console.error('Error uploading CSV:', err);
