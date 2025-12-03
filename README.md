@@ -109,6 +109,7 @@ Existing databases should run:
 - Cron: `schedulers/summaryScheduler.js` runs weekly; ensure email env/config in `services/emailService.js` if you use it.
 - Logs: stdout/stderr from Node; consider a process manager (PM2/systemd) for production.
 - Tests (current scripts): `npm run test:api`, `npm run test:smoke`, `npm run test:db`, `npm run test:all` (add data/config as needed).
+- Backups: `scripts/backup.sh` creates rolling backups (7 daily, 4 weekly, 12 monthly) of the DB and `public/images`. Configure DB env (`DB_HOST/DB_PORT/DB_USER/DB_PASS/DB_NAME`) and optional `BACKUP_ROOT`. Example cron: `0 2 * * * /path/to/scripts/backup.sh >/var/log/merit_backup.log 2>&1`.
 
 ## 8) Notable behaviours
 - Stock enforcement: purchases blocked when `prize_stock.current_stock <= 0`; out-of-stock prizes are labelled and unclickable in the UI.

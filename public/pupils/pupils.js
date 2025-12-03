@@ -297,8 +297,14 @@ function displayTransactions(transactions, container) {
 function enableInlineEditing() {
   const editableCells = document.querySelectorAll('td.editable');
   editableCells.forEach(cell => {
-    cell.contentEditable = 'true';
-    cell.addEventListener('blur', handleInlineEditBlur);
+    const field = cell.getAttribute('data-field');
+    if (field === 'form_name') {
+      renderFormSelect(cell);
+      cell.contentEditable = 'false';
+    } else {
+      cell.contentEditable = 'true';
+      cell.addEventListener('blur', handleInlineEditBlur);
+    }
   });
 }
 
@@ -308,15 +314,18 @@ function toggleInlineEdit(enabled) {
   if (enabled) {
     editableCells.forEach(cell => {
       cell.classList.add('editable');
-      cell.contentEditable = 'true';
-      cell.addEventListener('blur', handleInlineEditBlur);
+      const field = cell.getAttribute('data-field');
+      if (field === 'form_name') {
+        renderFormSelect(cell);
+        cell.contentEditable = 'false';
+      } else {
+        cell.contentEditable = 'true';
+        cell.addEventListener('blur', handleInlineEditBlur);
+      }
     });
   } else {
-    editableCells.forEach(cell => {
-      cell.classList.remove('editable');
-      cell.contentEditable = 'false';
-      cell.removeEventListener('blur', handleInlineEditBlur);
-    });
+    // Reload to restore clean text values and remove selects
+    loadPupils().then(() => filterPupils());
   }
 }
 
@@ -382,6 +391,48 @@ async function handleInlineEditBlur(e) {
   };
 
   await updatePupil(pupil_id, updatedData);
+}
+
+function renderFormSelect(cell) {
+  const row = cell.closest('tr');
+  const pupilId = row?.dataset.pupilId;
+  const currentFormId = parseInt(cell.getAttribute('data-formid') || '0', 10);
+
+  // Avoid duplicating select
+  const existing = cell.querySelector('select');
+  if (existing) return;
+
+  const select = document.createElement('select');
+  formsData.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.form_id;
+    opt.textContent = f.form_name;
+    if (f.form_id === currentFormId) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', async () => {
+    if (!pupilId) return;
+    const newFormId = select.value;
+    const getFieldValue = (fieldName) => {
+      const td = row.querySelector(`td[data-field="${fieldName}"]`);
+      return td ? td.textContent.trim() : '';
+    };
+    const first_name = getFieldValue('first_name');
+    const last_name = getFieldValue('last_name');
+    const meritsVal = parseInt(getFieldValue('merits'), 10);
+    const merits = isNaN(meritsVal) ? 0 : meritsVal;
+
+    await updatePupil(pupilId, {
+      first_name,
+      last_name,
+      merits,
+      form_id: newFormId
+    });
+  });
+
+  cell.innerHTML = '';
+  cell.appendChild(select);
 }
 
 // POST the update to /pupils/edit/:id
