@@ -13,21 +13,26 @@ RETURNS TIMESTAMPTZ AS $$
 DECLARE
   local_now      TIMESTAMPTZ := now() AT TIME ZONE 'Europe/London';
   interval_weeks INTEGER     := GREATEST(cycle_weeks, 1);
-  week_start     TIMESTAMPTZ := date_trunc('week', local_now); -- Monday 00:00 (ISO)
+  -- Use a fixed anchor so multi-week cycles don't drift back to weekly
+  anchor_base    TIMESTAMPTZ := make_timestamptz(2024, 1, 1, 2, 0, 0, 'Europe/London'); -- Monday
+  anchor         TIMESTAMPTZ;
   candidate      TIMESTAMPTZ;
 BEGIN
   IF reset_day_iso IS NULL OR reset_day_iso < 1 OR reset_day_iso > 7 THEN
     reset_day_iso := 1; -- default Monday
   END IF;
 
-  candidate := week_start
-               + ((reset_day_iso - 1) * INTERVAL '1 day')
-               + INTERVAL '2 hours';
+  -- Anchor on a known week, then step forward/back in whole intervals
+  anchor := date_trunc('week', anchor_base)
+            + ((reset_day_iso - 1) * INTERVAL '1 day')
+            + INTERVAL '2 hours';
 
-  -- If the reset time for this cycle is still in the future, step back by the full interval
-  IF local_now < candidate THEN
-    candidate := candidate - (interval_weeks * INTERVAL '1 week');
-  END IF;
+  -- How many full cycles have elapsed since the anchor?
+  candidate := anchor
+               + floor(
+                   EXTRACT(EPOCH FROM (local_now - anchor))
+                   / (interval_weeks * 7 * 24 * 60 * 60)
+                 ) * interval_weeks * INTERVAL '1 week';
 
   RETURN candidate;
 END;
