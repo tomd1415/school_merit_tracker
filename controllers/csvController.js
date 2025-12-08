@@ -24,6 +24,20 @@ const nameKey = (first, last) => {
   return `${f}|${l}`;
 };
 
+// Normalise a CSV row's keys so BOMs / spaces / case differences don't break detection
+const normaliseRow = (row) => {
+  const out = {};
+  for (const key of Object.keys(row)) {
+    const cleanKey = key
+      .replace(/^\uFEFF/, '')        // strip BOM
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_');        // "Form Group" -> "form_group"
+    out[cleanKey] = row[key];
+  }
+  return out;
+};
+
 /**
  * Show the CSV Upload page for Pupils.
  */
@@ -190,29 +204,31 @@ exports.uploadMeritsCSV = async (req, res) => {
     aggregated.set(key, existing);
   };
 
-  for (const row of rows) {
+  for (const raw of rows) {
+    const row = normaliseRow(raw);
+
     // Source format: Name + Points (+ Form Group, Year Group)
-    if (row.Name && row.Points) {
-      const name = (row.Name || '').trim();
+    if (row.name && row.points) {
+      const name = (row.name || '').trim();
       const parts = name.split(/\s+/, 2);
       const first_name = parts[0] || '';
       const last_name = parts[1] || '';
-      const pts = parseInt(String(row.Points).trim(), 10);
-      const form_name = (row['Form Group'] || row.Form || row.form_group || '').toString().trim();
-      const year_group = parseYear(row['Year Group'] || row.year_group);
+      const pts = parseInt(String(row.points).trim(), 10);
+      const form_name = (row.form_group || row.form || row.form_name || '').toString().trim();
+      const year_group = parseYear(row.year_group);
       if (!isNaN(pts)) {
         addAggregate(first_name, last_name, pts, form_name, year_group);
         continue;
       }
     }
 
-    // Converted format
-    const first_name = (row.first_name || row.First_name || '').trim();
-    const last_name = (row.last_name || row.Last_name || '').trim();
-    const meritsStr = (row.merits || row.Merits || row.points || '').toString().trim();
+    // Converted / already aggregated format
+    const first_name = (row.first_name || row.first || '').trim();
+    const last_name = (row.last_name || row.last || '').trim();
+    const meritsStr = (row.merits || row.points || row.total || '').toString().trim();
     const merits = parseInt(meritsStr, 10);
-    const form_name = (row.form_name || row.form || row.Form || row['Form Group'] || '').toString().trim();
-    const year_group = parseYear(row.year_group || row.Year_group || row['Year Group']);
+    const form_name = (row.form_name || row.form || row.form_group || '').toString().trim();
+    const year_group = parseYear(row.year_group);
     if (!isNaN(merits)) {
       addAggregate(first_name, last_name, merits, form_name, year_group);
     }
@@ -302,6 +318,7 @@ exports.uploadMeritsCSV = async (req, res) => {
       }
 
       const pupil = checkResult.rows[0];
+      // Replace only if the CSV total is higher than current
       const desiredMerits = Math.max(pupil.merits, merits);
 
       if (desiredMerits > pupil.merits) {
@@ -312,10 +329,9 @@ exports.uploadMeritsCSV = async (req, res) => {
         updatedCount++;
       } else {
         unchangedCount++;
-      }
-
-      if (merits < pupil.merits) {
-        lowerKept.push(`${first_name} ${last_name}`);
+        if (merits < pupil.merits) {
+          lowerKept.push(`${first_name} ${last_name}`);
+        }
       }
 
       if (updateFormFromCsv && form_name) {
