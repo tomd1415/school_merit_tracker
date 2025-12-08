@@ -38,6 +38,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Ensure ownership/permissions for the app role
+ALTER FUNCTION prize_cycle_start(integer, integer) OWNER TO merit_user;
+GRANT EXECUTE ON FUNCTION prize_cycle_start(integer, integer) TO merit_user;
+
 -- 3) Refresh prize_stock view to account for cycle-limited prizes
 DROP VIEW IF EXISTS prize_stock;
 
@@ -76,3 +80,7 @@ GROUP BY
     p.is_cycle_limited,
     p.reset_day_iso,
     p.cycle_weeks;
+
+-- Ensure app role can read the refreshed view
+ALTER VIEW prize_stock OWNER TO merit_user;
+GRANT SELECT ON prize_stock TO merit_user;
