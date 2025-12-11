@@ -325,6 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
           sidebarSelectedPupil.merits = data.newRemaining;
           selectSidebarPupil(sidebarSelectedPupil);
         }
+
+        // Refresh prizes so stock/space counts update immediately in the UI
+        await loadPrizes();
       }
     } catch (err) {
       console.error('Error creating purchase:', err);
@@ -401,6 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         // — end new code —
+
+        // Refresh prizes so stock is restored in the list after a cancel
+        await loadPrizes();
 
       } else {
         confirmationMessage.innerHTML =
