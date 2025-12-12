@@ -8,6 +8,7 @@ const menuHTML = `
     color: #ffffff;
     padding: 10px 0;
     position: relative;
+    z-index: 9999;
   ">
     <nav>
       <a href="/pupils" style="margin: 0 10px; color: #ffffff; text-decoration: none;">Manage Pupils</a>
@@ -33,8 +34,8 @@ const menuHTML = `
   </div>
 `;
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Insert the menu
+function injectMenu() {
+  if (document.getElementById('topMenu')) return; // prevent duplicates
   document.body.insertAdjacentHTML('afterbegin', menuHTML);
 
   // Sign out button -> simple redirect to staff logout
@@ -44,4 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = '/staff/logout';
     });
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', injectMenu);
+} else {
+  injectMenu();
+}

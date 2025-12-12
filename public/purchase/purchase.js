@@ -27,6 +27,7 @@ function normalizeAPLabel(msg) {
 document.addEventListener('DOMContentLoaded', () => {
   // UI Elements
   const prizeContainer = document.getElementById('prizeContainer');
+  const topMenuLoaded = { value: false };
   const pupilModal = document.getElementById('pupilModal');
   const closeModal = document.getElementById('closeModal');
   const pupilSearchInput = document.getElementById('pupilSearch');
@@ -508,4 +509,22 @@ document.addEventListener('DOMContentLoaded', () => {
       hideChangePasswordModal();
     }
   });
+
+  // Load top menu for admins only
+  (async () => {
+    try {
+      const res = await fetch('/staff/me');
+      if (!res.ok) return;
+      const data = await res.json();
+      const roles = data.roles || [];
+      if (roles.includes('admin')) {
+        const script = document.createElement('script');
+        script.src = '/commonMenu.js';
+        document.head.appendChild(script);
+        topMenuLoaded.value = true;
+      }
+    } catch (err) {
+      console.warn('Could not determine staff role for menu:', err);
+    }
+  })();
 });

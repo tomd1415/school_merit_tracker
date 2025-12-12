@@ -1,0 +1,176 @@
+:root {
+  --bg: #0f172a;
+  --panel: #0b1220;
+  --border: #1f2937;
+  --muted: #9ca3af;
+  --primary: #003a69;
+  --primary-light: #0f68b0;
+  --accent: #7dd3fc;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.admin-surface {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #0b1220 55%, #0f172a);
+  color: #e5e7eb;
+  min-height: 100vh;
+  margin: 0;
+  padding: 28px 16px;
+}
+
+.admin-card {
+  background: rgba(11, 18, 32, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(125, 211, 252, 0.08);
+  backdrop-filter: blur(6px);
+  margin: 0 auto;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 340px;
+  gap: 24px;
+}
+
+.admin-card--panel {
+  max-width: none;
+  padding: 20px;
+}
+
+.admin-card h1,
+.admin-card h2 {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.admin-subhead,
+.muted {
+  color: var(--muted);
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.admin-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.25);
+}
+
+.admin-label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.admin-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 12px 30px rgba(0, 58, 105, 0.35);
+}
+
+.admin-btn:hover { transform: translateY(-1px); }
+.admin-btn:active { transform: translateY(0); }
+.admin-btn:disabled { background: #1f2937; cursor: not-allowed; box-shadow: none; }
+
+.admin-status {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  display: none;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.admin-status.ok { background: rgba(34, 197, 94, 0.1); color: var(--success); border-color: rgba(34,197,94,0.35); }
+.admin-status.err { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239,68,68,0.35); }
+.admin-status.info { background: rgba(125, 211, 252, 0.12); color: var(--accent); border-color: rgba(125,211,252,0.35); }
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.admin-table th {
+  background: rgba(255,255,255,0.04);
+}
+
+.inline-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.ghost-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  white-space: nowrap;
+  width: auto;
+  color: #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ghost-btn:hover { border-color: var(--accent); }
+.ghost-btn.danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); }
+
+.admin-search-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 0 12px;
+}
+
+.admin-search-row input {
+  max-width: 320px;
+}
+
+@media (max-width: 900px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-card {
+    max-width: 100%;
+  }
+}

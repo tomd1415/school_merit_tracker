@@ -3,102 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Users (Preview)</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #0b1220;
-      --border: #1f2937;
-      --muted: #9ca3af;
-      --primary: #003a69;
-      --primary-light: #0f68b0;
-      --accent: #7dd3fc;
-      --danger: #ef4444;
-      --success: #22c55e;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-      background: linear-gradient(135deg, #0f172a, #0b1220 55%, #0f172a);
-      color: #e5e7eb;
-      padding: 28px;
-    }
-    h1 { margin-top: 0; margin-bottom: 6px; }
-    .muted { color: var(--muted); font-size: 0.95em; }
-    .grid { display: grid; grid-template-columns: 1.1fr 340px; gap: 24px; }
-    .card {
-      background: rgba(11, 18, 32, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(125, 211, 252, 0.08);
-      backdrop-filter: blur(6px);
-    }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
-    th { background: rgba(255,255,255,0.04); }
-    label { display: block; margin-top: 12px; font-weight: 600; color: #e5e7eb; }
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #0f172a;
-      color: #e5e7eb;
-      font-size: 15px;
-    }
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.25);
-    }
-    button {
-      margin-top: 12px;
-      padding: 10px 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 12px 30px rgba(0, 58, 105, 0.35);
-    }
-    button:hover { transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    button:disabled { background: #1f2937; cursor: not-allowed; box-shadow: none; }
-    .inline-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
-    .ghost-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      box-shadow: none;
-      padding: 6px 10px;
-      font-size: 13px;
-      white-space: nowrap;
-      width: auto;
-    }
-    .danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); }
-    .status { margin-top: 10px; padding: 10px; border-radius: 10px; display: none; font-weight: 600; border: 1px solid transparent; }
-    .status.ok { background: rgba(34, 197, 94, 0.1); color: var(--success); border-color: rgba(34,197,94,0.35); }
-    .status.err { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239,68,68,0.35); }
-    .status.info { background: rgba(125, 211, 252, 0.12); color: var(--accent); border-color: rgba(125,211,252,0.35); }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-  </style>
+  <title>Staff Users</title>
+  <link rel="stylesheet" href="/css/admin.css" />
 </head>
-<body>
-  <h1>Staff Users (Preview)</h1>
-  <p class="muted">Behind feature flag. Set <code>AUTH_ENABLED=true</code> and log in with an admin user to use this page.</p>
+<body class="admin-surface">
+  <script src="/commonMenu.js"></script>
+  <h1>Staff Users</h1>
+  <p class="muted">Admins can create users, toggle active status, reset passwords, or delete accounts.</p>
 
-  <div class="grid">
-    <div class="card">
+  <div class="admin-grid">
+    <div class="admin-card admin-card--panel">
       <h2>Existing Users</h2>
-      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-        <input id="userSearch" type="text" placeholder="Search by username or role..." style="max-width: 280px;">
+      <div class="admin-search-row">
+        <input id="userSearch" type="text" placeholder="Search by username or role..." class="admin-input">
       </div>
-      <div id="usersStatus" class="status"></div>
-      <table id="usersTable">
+      <div id="usersStatus" class="admin-status"></div>
+      <table id="usersTable" class="admin-table">
         <thead>
           <tr>
             <th>Username</th>
@@ -115,18 +35,18 @@
     <div class="card">
       <h2>Create User</h2>
       <form id="createForm">
-        <label for="newUsername">Username</label>
-        <input id="newUsername" name="username" required />
+        <label for="newUsername" class="admin-label">Username</label>
+        <input id="newUsername" name="username" required class="admin-input" />
 
-        <label for="newPassword">Password</label>
-        <input id="newPassword" name="password" type="password" required />
+        <label for="newPassword" class="admin-label">Password</label>
+        <input id="newPassword" name="password" type="password" required class="admin-input" />
 
-        <label for="newRoles">Roles (comma separated, e.g., admin,staff)</label>
-        <input id="newRoles" name="roles" placeholder="staff" />
+        <label for="newRoles" class="admin-label">Roles (comma separated, e.g., admin,staff)</label>
+        <input id="newRoles" name="roles" placeholder="staff" class="admin-input" />
 
-        <button type="submit" id="createBtn">Create User</button>
+        <button type="submit" id="createBtn" class="admin-btn">Create User</button>
       </form>
-      <div id="createStatus" class="status"></div>
+      <div id="createStatus" class="admin-status"></div>
       <div class="muted" style="margin-top:10px;">Actions: toggle active, reset passwords, or delete users from the table.</div>
     </div>
   </div>
@@ -154,7 +74,7 @@
         renderUsers();
       } catch (err) {
         usersStatus.textContent = err.message;
-        usersStatus.className = 'status err';
+        usersStatus.className = 'admin-status err';
         usersStatus.style.display = 'block';
       }
     }
@@ -185,13 +105,13 @@
           throw new Error(msg);
         }
         createStatus.textContent = 'User created.';
-        createStatus.className = 'status ok';
+        createStatus.className = 'admin-status ok';
         createStatus.style.display = 'block';
         createForm.reset();
         loadUsers();
       } catch (err) {
         createStatus.textContent = err.message;
-        createStatus.className = 'status err';
+        createStatus.className = 'admin-status err';
         createStatus.style.display = 'block';
       } finally {
         createBtn.disabled = false;

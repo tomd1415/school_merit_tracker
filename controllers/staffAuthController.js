@@ -315,6 +315,13 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+exports.me = (req, res) => {
+  if (!authEnabled) return featureDisabled(res);
+  const user = req.session && req.session.staffUser;
+  if (!user) return res.status(401).json({ error: 'Login required' });
+  return res.json({ username: user.username, roles: user.roles || [] });
+};
+
 async function ensureRolesExist(roles = []) {
   if (!roles || roles.length === 0) return;
   const unique = Array.from(new Set(roles));

@@ -3,120 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Login (Preview)</title>
-  <style>
-    :root {
-      --primary: #003a69;
-      --primary-light: #0f68b0;
-      --panel: #0b1f33;
-      --bg: #0f172a;
-      --muted: #9ca3af;
-      --card: #0b1220;
-      --border: #1f2937;
-      --accent: #7dd3fc;
-      --danger: #f87171;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-      background: radial-gradient(circle at 20% 20%, rgba(125, 211, 252, 0.15), transparent 30%),
-                  radial-gradient(circle at 80% 0%, rgba(99, 102, 241, 0.18), transparent 35%),
-                  linear-gradient(135deg, #0f172a, #0b1220 60%, #0f172a);
-      color: #e5e7eb;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 16px;
-    }
-    .card {
-      background: rgba(11, 18, 32, 0.92);
-      border: 1px solid #1f2937;
-      border-radius: 16px;
-      padding: 28px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(125, 211, 252, 0.08);
-      backdrop-filter: blur(6px);
-    }
-    h1 {
-      margin: 0 0 6px;
-      font-weight: 700;
-      color: #f8fafc;
-      letter-spacing: 0.3px;
-    }
-    .subhead {
-      margin: 0 0 18px;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    label {
-      display: block;
-      margin: 14px 0 6px;
-      font-weight: 600;
-      color: #e5e7eb;
-    }
-    input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #0f172a;
-      color: #e5e7eb;
-      font-size: 15px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.25);
-    }
-    button {
-      margin-top: 18px;
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 12px 30px rgba(0, 58, 105, 0.35);
-    }
-    button:hover { transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    button:disabled { background: #1f2937; cursor: not-allowed; box-shadow: none; }
-    .status {
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 10px;
-      display: none;
-      font-weight: 600;
-      border: 1px solid transparent;
-    }
-    .status.ok { background: rgba(16, 185, 129, 0.12); color: #34d399; border-color: rgba(52, 211, 153, 0.35); }
-    .status.err { background: rgba(248, 113, 113, 0.1); color: var(--danger); border-color: rgba(248, 113, 113, 0.3); }
-  </style>
+  <title>Staff Login</title>
+  <link rel="stylesheet" href="/css/admin.css" />
 </head>
-<body>
-  <div class="card">
+<body class="admin-surface">
+  <div class="admin-card">
     <h1>Staff Sign In</h1>
-    <p class="subhead">Use your staff credentials to continue. Admins will land on the dashboard; staff will go straight to purchases.</p>
+    <p class="admin-subhead">Use your staff credentials to continue. Admins will land on the dashboard; staff will go straight to purchases.</p>
 
     <form id="loginForm">
-      <label for="username">Username</label>
-      <input id="username" name="username" autocomplete="username" required />
+      <label for="username" class="admin-label">Username</label>
+      <input id="username" name="username" autocomplete="username" required class="admin-input" />
 
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required />
+      <label for="password" class="admin-label">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required class="admin-input" />
 
-      <button type="submit" id="loginBtn">Sign in</button>
+      <button type="submit" id="loginBtn" class="admin-btn">Sign in</button>
     </form>
 
-    <div id="status" class="status"></div>
+    <div id="status" class="admin-status"></div>
   </div>
 
   <script>
@@ -150,18 +55,18 @@
         if (res.ok && data.success) {
           const redirect = data.redirect || '/';
           statusBox.textContent = 'Login successful. Redirecting...';
-          statusBox.className = 'status ok';
+          statusBox.className = 'admin-status ok';
           statusBox.style.display = 'block';
           window.location.href = redirect;
           return;
         } else {
           const message = data && data.error ? data.error : 'Login failed.';
           statusBox.textContent = message;
-          statusBox.className = 'status err';
+          statusBox.className = 'admin-status err';
         }
       } catch (err) {
         statusBox.textContent = 'Network or server error.';
-        statusBox.className = 'status err';
+        statusBox.className = 'admin-status err';
       } finally {
         statusBox.style.display = 'block';
         loginBtn.disabled = false;

@@ -22,5 +22,6 @@ router.post('/api/users', allowBootstrapOrRole('admin'), staffAuthController.cre
 router.patch('/api/users/:userId/password', requireStaffRole('admin'), staffAuthController.updateUserPassword);
 router.patch('/api/users/:userId/active', requireStaffRole('admin'), staffAuthController.setUserActive);
 router.delete('/api/users/:userId', requireStaffRole('admin'), staffAuthController.deleteUser);
+router.get('/me', requireStaffAuth, staffAuthController.me);
 
 module.exports = router;
