@@ -19,5 +19,8 @@ router.post('/change-password', requireStaffAuth, staffAuthController.changePass
 router.get('/admin/users', allowBootstrapOrRole('admin'), staffAuthController.showAdminPage);
 router.get('/api/users', requireStaffRole('admin'), staffAuthController.listUsers);
 router.post('/api/users', allowBootstrapOrRole('admin'), staffAuthController.createUser);
+router.patch('/api/users/:userId/password', requireStaffRole('admin'), staffAuthController.updateUserPassword);
+router.patch('/api/users/:userId/active', requireStaffRole('admin'), staffAuthController.setUserActive);
+router.delete('/api/users/:userId', requireStaffRole('admin'), staffAuthController.deleteUser);
 
 module.exports = router;

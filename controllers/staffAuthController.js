@@ -220,6 +220,101 @@ exports.listUsers = async (req, res) => {
   }
 };
 
+exports.updateUserPassword = async (req, res) => {
+  if (!authEnabled) return featureDisabled(res);
+  const actor = ensureAdmin(req, res);
+  if (!actor) return;
+
+  const userId = Number(req.params.userId);
+  const { newPassword } = req.body || {};
+
+  if (!userId || !newPassword) {
+    return res.status(400).json({ error: 'User ID and new password are required' });
+  }
+  if (String(newPassword).length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    const exists = await pool.query(
+      `SELECT staff_user_id FROM staff_users WHERE staff_user_id = $1`,
+      [userId]
+    );
+    if (exists.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const hash = hashPassword(newPassword);
+    await pool.query(
+      `UPDATE staff_users SET password_hash = $1, last_password_change_at = NOW() WHERE staff_user_id = $2`,
+      [hash, userId]
+    );
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Error resetting user password:', err);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+};
+
+exports.setUserActive = async (req, res) => {
+  if (!authEnabled) return featureDisabled(res);
+  const actor = ensureAdmin(req, res);
+  if (!actor) return;
+
+  const userId = Number(req.params.userId);
+  const { active } = req.body || {};
+  const activeBool = !!active;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+  if (userId === actor.id) {
+    return res.status(400).json({ error: 'You cannot change your own active status' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE staff_users SET active = $1 WHERE staff_user_id = $2 RETURNING staff_user_id`,
+      [activeBool, userId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    return res.json({ success: true, active: activeBool });
+  } catch (err) {
+    console.error('Error updating user active state:', err);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  if (!authEnabled) return featureDisabled(res);
+  const actor = ensureAdmin(req, res);
+  if (!actor) return;
+
+  const userId = Number(req.params.userId);
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+  if (userId === actor.id) {
+    return res.status(400).json({ error: 'You cannot delete your own account' });
+  }
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM staff_users WHERE staff_user_id = $1`,
+      [userId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+};
+
 async function ensureRolesExist(roles = []) {
   if (!roles || roles.length === 0) return;
   const unique = Array.from(new Set(roles));
