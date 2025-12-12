@@ -1,20 +1,5 @@
 // public/uploadCSV/uploadCSV.js
 
-// Global modal functions
-function showModal(modalElement) {
-  modalElement.style.display = 'flex';
-  setTimeout(() => {
-    modalElement.classList.add('show');
-  }, 10);
-}
-
-function hideModal(modalElement) {
-  modalElement.classList.remove('show');
-  setTimeout(() => {
-    modalElement.style.display = 'none';
-  }, 300);
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   const uploadForm = document.getElementById('uploadForm');
   const messageEl = document.getElementById('uploadMessage');

@@ -110,6 +110,7 @@
     </div>
   </div>
 
+  <script src="/commonModal.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const signOutBtn = document.getElementById('signOutBtn');
@@ -119,17 +120,6 @@
       const changePasswordForm = document.getElementById('changePasswordForm');
       const changePasswordStatus = document.getElementById('changePasswordStatus');
       const cancelChangePassword = document.getElementById('cancelChangePassword');
-
-      const showModal = (el) => {
-        if (!el) return;
-        el.style.display = 'flex';
-        setTimeout(() => el.classList.add('show'), 10);
-      };
-      const hideModal = (el) => {
-        if (!el) return;
-        el.classList.remove('show');
-        setTimeout(() => { el.style.display = 'none'; }, 300);
-      };
 
       if (signOutBtn) {
         signOutBtn.addEventListener('click', function() {

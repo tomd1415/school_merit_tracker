@@ -4,6 +4,7 @@ let inlineEditEnabled = false;      // Track whether inline editing is on/off
 let allPrizes = [];                // We'll store the fetched prizes here
 let currentView = 'table';
 let selectedPrizeId = null;
+const { showModal, hideModal } = window;
 
 function isoDayName(iso) {
   const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -436,21 +437,6 @@ function initCycleToggle(toggleId, fieldsId) {
 
   toggle.addEventListener('change', sync);
   sync();
-}
-
-// Global modal functions
-function showModal(modalElement) {
-  modalElement.style.display = 'flex';
-  setTimeout(() => {
-    modalElement.classList.add('show');
-  }, 10);
-}
-
-function hideModal(modalElement) {
-  modalElement.classList.remove('show');
-  setTimeout(() => {
-    modalElement.style.display = 'none';
-  }, 300);
 }
 
 window.addEventListener('DOMContentLoaded', () => {

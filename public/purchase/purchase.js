@@ -8,6 +8,7 @@ let currentPupilName = null; // Store the pupil name for the current purchase
 let currentPrizeMerits = null; // Store the merit cost of the current purchase
 let recentPupils = []; // Store last few selected pupils for quick reuse
 let sidebarSelectedPupil = null; // Store the currently selected pupil in the sidebar
+const { showModal, hideModal } = window;
 
 function isoDayName(iso) {
   const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -105,19 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadPrizes();
 
   // 2) Modal handling
-  function showModal(modalElement) {
-    modalElement.style.display = 'flex';
-    setTimeout(() => {
-      modalElement.classList.add('show');
-    }, 10);
-  }
-
-  function hideModal(modalElement) {
-    modalElement.classList.remove('show');
-    setTimeout(() => {
-      modalElement.style.display = 'none';
-    }, 300);
-  }
 
   closeModal.addEventListener('click', () => {
     hideModal(pupilModal);

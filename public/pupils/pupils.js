@@ -5,25 +5,11 @@ let inlineEditEnabled = false;
 let formsData = []; // to store forms for editing
 let allPupils = []; // to store all loaded pupils for filtering
 let currentTransactionPupil = null; // Store pupil for transaction modal
+const { showModal, hideModal } = window;
 
 // Replace any lingering "merit" wording in messages with "APs"
 function normalizeAPLabel(msg) {
   return msg ? msg.replace(/merits?/gi, 'APs') : msg;
-}
-
-// Global modal functions
-function showModal(modalElement) {
-  modalElement.style.display = 'flex';
-  setTimeout(() => {
-    modalElement.classList.add('show');
-  }, 10);
-}
-
-function hideModal(modalElement) {
-  modalElement.classList.remove('show');
-  setTimeout(() => {
-    modalElement.style.display = 'none';
-  }, 300);
 }
 
 window.addEventListener('DOMContentLoaded', async () => {

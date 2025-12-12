@@ -1,3 +1,6 @@
+// Shared modal helpers
+const { showModal, hideModal } = window;
+
 // Global functions
 async function openEditModal(formId) {
   try {
@@ -61,21 +64,6 @@ async function loadForms() {
     console.error('Error loading forms:', err);
     alert('Failed to load forms. Please refresh the page.');
   }
-}
-
-// Global modal functions
-function showModal(modalElement) {
-  modalElement.style.display = 'flex';
-  setTimeout(() => {
-    modalElement.classList.add('show');
-  }, 10);
-}
-
-function hideModal(modalElement) {
-  modalElement.classList.remove('show');
-  setTimeout(() => {
-    modalElement.style.display = 'none';
-  }, 300);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
