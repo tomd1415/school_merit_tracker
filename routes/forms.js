@@ -3,6 +3,11 @@ const router = express.Router();
 const formController = require('../controllers/formController');
 const { requireFullAccess } = require('../middlewares/auth');
 
+// Show forms page
+router.get('/', requireFullAccess, (req, res) => {
+  res.sendFile(require('path').join(__dirname, '..', 'public', 'forms', 'forms.html'));
+});
+
 // Apply authentication middleware to all routes
 // Get all forms
 router.get('/all', requireFullAccess, formController.getAllForms);

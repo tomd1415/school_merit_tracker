@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Event Handlers
   signOutBtn.addEventListener('click', () => {
-    window.location.href = '/logout';
+    window.location.href = '/staff/logout';
   });
 
   // 1) Load all prizes

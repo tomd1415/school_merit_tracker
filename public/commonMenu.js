@@ -37,11 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Insert the menu
   document.body.insertAdjacentHTML('afterbegin', menuHTML);
 
-  // Sign out button -> simple redirect to /logout
+  // Sign out button -> simple redirect to staff logout
   const signOutBtn = document.getElementById('signOutBtn');
   if (signOutBtn) {
     signOutBtn.addEventListener('click', () => {
-      window.location.href = '/logout';
+      window.location.href = '/staff/logout';
     });
   }
 });

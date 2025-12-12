@@ -10,9 +10,9 @@ const app = express();
 const prizeRoutes = require('./routes/prizeRoutes');
 const csvRoutes = require('./routes/csvRoutes');
 const purchaseRoutes = require('./routes/purchaseRoutes');
-const pinRoutes = require('./routes/pinRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const { requireFullAccess } = require('./middlewares/auth');
+const { authEnabled } = require('./config/authConfig');
+const { requireFullAccess, requirePurchaseAccess } = require('./middlewares/auth');
 
 // Body Parser
 app.use(bodyParser.json());
@@ -37,32 +37,70 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Serve all files in the public folder (CSS, JS, images, HTML, etc.)
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Import routes
 const pupilRoutes = require('./routes/pupilRoutes');
+const formsRouter = require('./routes/forms');
 
-// Add route to serve forms page with authentication
-app.get('/forms', requireFullAccess, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'forms', 'forms.html'));
+// Staff auth routes
+const staffAuthRoutes = require('./routes/staffAuthRoutes');
+app.use('/staff', staffAuthRoutes);
+
+// Helper to check roles in middleware
+function hasRole(req, role) {
+  if (!authEnabled) return true;
+  const user = req.session && req.session.staffUser;
+  const roles = (user && user.roles) || [];
+  return user && (roles.includes(role) || roles.includes('admin'));
+}
+
+// Protect direct access to HTML pages even when served statically
+app.use((req, res, next) => {
+  if (!authEnabled) return next();
+  if (req.method !== 'GET') return next();
+
+  const p = req.path.toLowerCase();
+  if (p.startsWith('/staff')) return next(); // allow login/logout
+  if (p.startsWith('/css') || p.startsWith('/js') || p.startsWith('/images') || p === '/favicon.ico' || p === '/site.webmanifest') {
+    return next();
+  }
+
+  const redirectToLogin = () =>
+    res.redirect(303, `/staff/login?target=${encodeURIComponent(req.originalUrl)}`);
+
+  if (p.endsWith('.html') || p === '/' || p === '/purchase') {
+    if (p.startsWith('/purchase')) {
+      return hasRole(req, 'staff') ? next() : redirectToLogin();
+    }
+    // everything else is admin-only
+    return hasRole(req, 'admin') ? next() : redirectToLogin();
+  }
+
+  return next();
 });
 
-const formsRouter = require('./routes/forms');
-app.use('/forms', formsRouter);
+// Serve static assets after HTML guard
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Attach /pupils routes
-app.use('/pupils', pupilRoutes);
-app.use('/prizes', prizeRoutes);
-app.use('/upload/csv', csvRoutes);
-app.use('/purchase', purchaseRoutes);
-app.use('/orders', orderRoutes);
-app.use('/', pinRoutes);  // or app.use(pinRoutes);
+// Route wiring with role protection
+app.use('/forms', requireFullAccess, formsRouter);
+app.use('/pupils', requireFullAccess, pupilRoutes);
+app.use('/prizes', requireFullAccess, prizeRoutes);
+app.use('/upload/csv', requireFullAccess, csvRoutes);
+app.use('/orders', requireFullAccess, orderRoutes);
+app.use('/purchase', requirePurchaseAccess, purchaseRoutes);
 
-// Homepage route - serve static HTML
+// Homepage route - admin only, staff are redirected to /purchase
 app.get('/', (req, res) => {
-  // Serve the static index.html file
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  if (!authEnabled) {
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  if (!hasRole(req, 'staff')) {
+    return res.redirect(303, `/staff/login?target=${encodeURIComponent(req.originalUrl)}`);
+  }
+  if (hasRole(req, 'admin')) {
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  return res.redirect(303, '/purchase');
 });
 
 // Start server

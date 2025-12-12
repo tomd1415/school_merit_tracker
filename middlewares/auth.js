@@ -1,31 +1,40 @@
 // middlewares/auth.js
+//
+// Updated to use staff auth (username/password) with roles:
+// - staff: purchase flow only
+// - admin: full access
 
-// Middleware to require purchase access level for routes
+const { authEnabled } = require('../config/authConfig');
+
+const wantsJson = (req) =>
+  req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1);
+
+function hasRole(req, role) {
+  const user = req.session && req.session.staffUser;
+  const roles = (user && user.roles) || [];
+  return user && (roles.includes(role) || roles.includes('admin'));
+}
+
+// Middleware to require purchase-level access (staff or admin)
 exports.requirePurchaseAccess = (req, res, next) => {
-  const wantsJson = req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1);
-  if (req.session.userRole === 'purchase' || req.session.userRole === 'full') {
-    return next(); // User has required access level
-  }
-  
-  // User not logged in, redirect to login page with the target URL
+  if (!authEnabled) return next();
+  if (hasRole(req, 'staff')) return next();
+
   const targetUrl = encodeURIComponent(req.originalUrl);
-  if (wantsJson) {
-    return res.status(401).json({ error: 'Login required', redirect: `/enter-pin?target=${targetUrl}` });
+  if (wantsJson(req)) {
+    return res.status(401).json({ error: 'Login required', redirect: `/staff/login?target=${targetUrl}` });
   }
-  res.redirect(303, `/enter-pin?target=${targetUrl}`);
+  return res.redirect(303, `/staff/login?target=${targetUrl}`);
 };
 
-// Middleware to require full access level for routes
+// Middleware to require admin/full access
 exports.requireFullAccess = (req, res, next) => {
-  const wantsJson = req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1);
-  if (req.session.userRole === 'full') {
-    return next(); // User has required access level
-  }
-  
-  // User not logged in, redirect to login page with the target URL
+  if (!authEnabled) return next();
+  if (hasRole(req, 'admin')) return next();
+
   const targetUrl = encodeURIComponent(req.originalUrl);
-  if (wantsJson) {
-    return res.status(401).json({ error: 'Login required', redirect: `/enter-pin?target=${targetUrl}` });
+  if (wantsJson(req)) {
+    return res.status(401).json({ error: 'Admin login required', redirect: `/staff/login?target=${targetUrl}` });
   }
-  res.redirect(303, `/enter-pin?target=${targetUrl}`);
+  return res.redirect(303, `/staff/login?target=${targetUrl}`);
 };

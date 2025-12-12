@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Users (Preview)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7fafc; color: #1a202c; padding: 24px; }
+    h1 { margin-top: 0; }
+    .grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #edf2f7; }
+    .muted { color: #718096; font-size: 0.95em; }
+    label { display: block; margin-top: 12px; font-weight: 600; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; }
+    button { margin-top: 14px; padding: 10px 12px; background: #2b6cb0; color: #fff; border: none; border-radius: 6px; cursor: pointer; width: 100%; }
+    button:disabled { background: #a0aec0; cursor: not-allowed; }
+    .status { margin-top: 10px; padding: 10px; border-radius: 6px; display: none; }
+    .status.ok { background: #e6fffa; color: #046c4e; border: 1px solid #b2f5ea; }
+    .status.err { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+  </style>
+</head>
+<body>
+  <h1>Staff Users (Preview)</h1>
+  <p class="muted">Behind feature flag. Set <code>AUTH_ENABLED=true</code> and log in with an admin user to use this page.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Existing Users</h2>
+      <div id="usersStatus" class="status"></div>
+      <table id="usersTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th>Last login</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Create User</h2>
+      <form id="createForm">
+        <label for="newUsername">Username</label>
+        <input id="newUsername" name="username" required />
+
+        <label for="newPassword">Password</label>
+        <input id="newPassword" name="password" type="password" required />
+
+        <label for="newRoles">Roles (comma separated, e.g., admin,staff)</label>
+        <input id="newRoles" name="roles" placeholder="staff" />
+
+        <button type="submit" id="createBtn">Create User</button>
+      </form>
+      <div id="createStatus" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const usersTableBody = document.querySelector('#usersTable tbody');
+    const usersStatus = document.getElementById('usersStatus');
+    const createForm = document.getElementById('createForm');
+    const createStatus = document.getElementById('createStatus');
+    const createBtn = document.getElementById('createBtn');
+
+    async function loadUsers() {
+      usersStatus.style.display = 'none';
+      try {
+        const res = await fetch('/staff/api/users');
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || 'Unable to load users.';
+          throw new Error(msg);
+        }
+
+        usersTableBody.innerHTML = '';
+        data.users.forEach(user => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${user.username}</td>
+            <td>${(user.roles || []).join(', ') || '—'}</td>
+            <td>${user.active ? 'Active' : 'Disabled'}</td>
+            <td>${user.last_login_at ? new Date(user.last_login_at).toLocaleString() : '—'}</td>
+          `;
+          usersTableBody.appendChild(tr);
+        });
+      } catch (err) {
+        usersStatus.textContent = err.message;
+        usersStatus.className = 'status err';
+        usersStatus.style.display = 'block';
+      }
+    }
+
+    createForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      createStatus.style.display = 'none';
+      createBtn.disabled = true;
+
+      const rolesRaw = createForm.roles.value.trim();
+      const roles = rolesRaw ? rolesRaw.split(',').map(r => r.trim()).filter(Boolean) : ['staff'];
+
+      const payload = {
+        username: createForm.username.value.trim(),
+        password: createForm.password.value,
+        roles,
+      };
+
+      try {
+        const res = await fetch('/staff/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || 'Failed to create user.';
+          throw new Error(msg);
+        }
+        createStatus.textContent = 'User created.';
+        createStatus.className = 'status ok';
+        createStatus.style.display = 'block';
+        createForm.reset();
+        loadUsers();
+      } catch (err) {
+        createStatus.textContent = err.message;
+        createStatus.className = 'status err';
+        createStatus.style.display = 'block';
+      } finally {
+        createBtn.disabled = false;
+      }
+    });
+
+    loadUsers();
+  </script>
+</body>
+</html>

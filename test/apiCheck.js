@@ -4,7 +4,8 @@ import FormData from 'form-data';
 import fs from 'fs';
 
 const BASE_URL = 'http://localhost:3000';
-const FULL_PIN = '999999';
+const USERNAME = process.env.STAFF_USERNAME || '';
+const PASSWORD = process.env.STAFF_PASSWORD || '';
 
 const client = axios.create({
   baseURL: BASE_URL,
@@ -16,10 +17,13 @@ const client = axios.create({
 let sessionCookie = "";
 
 async function login() {
+  if (!USERNAME || !PASSWORD) {
+    console.error("[WARN] Set STAFF_USERNAME and STAFF_PASSWORD env vars to run apiCheck.");
+    process.exit(0);
+  }
+
   try {
-    const res = await client.post('/check-pin', `pin=${FULL_PIN}`, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
+    const res = await client.post('/staff/login', { username: USERNAME, password: PASSWORD });
     const setCookie = res.headers['set-cookie'];
     if (setCookie && setCookie.length > 0) {
       sessionCookie = setCookie[0].split(';')[0];

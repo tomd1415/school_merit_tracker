@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Login (Preview)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7fafc; color: #1a202c; display: flex; justify-content: center; padding: 40px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    h1 { margin-top: 0; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; }
+    button { margin-top: 16px; width: 100%; padding: 12px; background: #2b6cb0; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    button:disabled { background: #a0aec0; cursor: not-allowed; }
+    .status { margin-top: 12px; padding: 10px; border-radius: 6px; display: none; }
+    .status.ok { background: #e6fffa; color: #046c4e; border: 1px solid #b2f5ea; }
+    .status.err { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+    .note { margin-top: 12px; font-size: 0.9em; color: #4a5568; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Staff Login (Preview)</h1>
+    <p class="note">This flow is behind a feature flag. Set <code>AUTH_ENABLED=true</code> in the environment to activate it.</p>
+
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input id="username" name="username" autocomplete="username" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+      <button type="submit" id="loginBtn">Sign in</button>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const statusBox = document.getElementById('status');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Preserve target param if provided
+    const urlParams = new URLSearchParams(window.location.search);
+    const target = urlParams.get('target') || '';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusBox.style.display = 'none';
+      loginBtn.disabled = true;
+
+      const payload = {
+        username: form.username.value.trim(),
+        password: form.password.value,
+        target,
+      };
+
+      try {
+        const res = await fetch('/staff/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          const redirect = data.redirect || '/';
+          statusBox.textContent = 'Login successful. Redirecting...';
+          statusBox.className = 'status ok';
+          statusBox.style.display = 'block';
+          window.location.href = redirect;
+          return;
+        } else {
+          const message = data && data.error ? data.error : 'Login failed.';
+          statusBox.textContent = message;
+          statusBox.className = 'status err';
+        }
+      } catch (err) {
+        statusBox.textContent = 'Network or server error.';
+        statusBox.className = 'status err';
+      } finally {
+        statusBox.style.display = 'block';
+        loginBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -17,17 +17,6 @@
   transition: opacity 0.3s ease;
 }
 
-/* Special override for PIN modal */
-#pinLoginModal {
-  z-index: 99999 !important; /* Higher z-index than other modals */
-}
-
-#pinLoginModal.visible,
-#pinLoginModal[style*="display: flex"] {
-  display: flex !important;
-  opacity: 1 !important;
-}
-
 /* When modal is shown */
 .modal.show {
   opacity: 1;

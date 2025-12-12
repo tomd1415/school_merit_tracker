@@ -8,14 +8,12 @@
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/home.css" />
-  <link rel="stylesheet" href="/css/pinModal.css" />
 </head>
 <body>
   <header>
     <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
     <h1>School APs Tracker</h1>
     <div class="header-buttons">
-      <button id="loginBtn" class="login-button">Login</button>
       <button id="signOutBtn">Sign Out</button>
     </div>
   </header>
@@ -78,187 +76,13 @@
     </div>
   </main>
   
-  <!-- PIN Login Modal -->
-  <div id="pinLoginModal">
-    <div class="modal-content">
-      <span class="close-btn" id="closePinModal">&times;</span>
-      <h2>Enter PIN (6 digits)</h2>
-      
-      <div id="error-message" class="error-message">Incorrect PIN. Please try again.</div>
-      
-      <div class="pin-container">
-        <div id="pinDisplay"></div>
-        <div class="keypad">
-          <button class="digit-btn" data-digit="1">1</button>
-          <button class="digit-btn" data-digit="2">2</button>
-          <button class="digit-btn" data-digit="3">3</button>
-          <button class="digit-btn" data-digit="4">4</button>
-          <button class="digit-btn" data-digit="5">5</button>
-          <button class="digit-btn" data-digit="6">6</button>
-          <button class="digit-btn" data-digit="7">7</button>
-          <button class="digit-btn" data-digit="8">8</button>
-          <button class="digit-btn" data-digit="9">9</button>
-          <button class="digit-btn" data-digit="0">0</button>
-          <button id="backspaceBtn">Del</button>
-          <button id="submitPinBtn">Submit PIN</button>
-        </div>
-      </div>
-      
-      <!-- Hidden form -->
-      <form id="pinForm" action="/check-pin" method="POST">
-        <input type="hidden" id="pinInput" name="pin" value="">
-        <input type="hidden" id="redirectTarget" name="redirect" value="">
-      </form>
-    </div>
-  </div>
-  
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Parse URL parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const showLoginParam = urlParams.get('showLogin') === 'true';
-      const loginErrorParam = urlParams.get('loginError') === 'true';
-      const targetParam = urlParams.get('target') || '';
-      
-      // Check if user is logged in via session storage
-      const userRole = sessionStorage.getItem('userRole') || '';
-      
-      // Core elements
-      const pinLoginModal = document.getElementById('pinLoginModal');
-      const pinDisplay = document.getElementById('pinDisplay');
-      const digitBtns = document.querySelectorAll('.digit-btn');
-      const backspaceBtn = document.getElementById('backspaceBtn');
-      const submitPinBtn = document.getElementById('submitPinBtn');
-      const pinInput = document.getElementById('pinInput');
-      const pinForm = document.getElementById('pinForm');
-      const loginBtn = document.getElementById('loginBtn');
       const signOutBtn = document.getElementById('signOutBtn');
-      const closePinModal = document.getElementById('closePinModal');
-      const errorMessage = document.getElementById('error-message');
-      
-      // Show/hide elements based on session
-      loginBtn.style.display = userRole ? 'none' : 'inline-block';
-      signOutBtn.style.display = userRole ? 'inline-block' : 'none';
-      
-      // Show error message if login error
-      if (loginErrorParam) {
-        errorMessage.style.display = 'block';
-      }
-      
-      // Handle sign out
-      signOutBtn.addEventListener('click', function() {
-        // Clear session storage
-        sessionStorage.removeItem('userRole');
-        window.location.href = '/logout';
-      });
-      
-      // PIN tracking
-      let currentPin = '';
-      const MAX_PIN_LENGTH = 6; // Support for 6-digit PIN
-      
-      // Basic modal functions
-      function showModal() {
-        pinLoginModal.style.display = 'flex';
-        currentPin = '';
-        updateDisplay();
-      }
-      
-      function hideModal() {
-        pinLoginModal.style.display = 'none';
-      }
-      
-      // Update PIN display
-      function updateDisplay() {
-        pinDisplay.textContent = '•'.repeat(currentPin.length);
-      }
-      
-      // Submit PIN
-      function submitPin() {
-        pinInput.value = currentPin;
-        
-        // Make sure the target is set
-        const redirectTarget = document.getElementById('redirectTarget');
-        if (redirectTarget) {
-          redirectTarget.value = targetParam;
-        }
-        
-        pinForm.submit();
-      }
-      
-      // EVENT LISTENERS
-      
-      // Login button
-      loginBtn.addEventListener('click', function() {
-        showModal();
-      });
-      
-      // Close button
-      closePinModal.addEventListener('click', function() {
-        hideModal();
-      });
-      
-      // Digit buttons
-      digitBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          if (currentPin.length < MAX_PIN_LENGTH) {
-            currentPin += this.getAttribute('data-digit');
-            updateDisplay();
-            
-            // Auto-submit when max length reached
-            if (currentPin.length === MAX_PIN_LENGTH) {
-              setTimeout(submitPin, 300);
-            }
-          }
+      if (signOutBtn) {
+        signOutBtn.addEventListener('click', function() {
+          window.location.href = '/staff/logout';
         });
-      });
-      
-      // Backspace button
-      backspaceBtn.addEventListener('click', function() {
-        if (currentPin.length > 0) {
-          currentPin = currentPin.slice(0, -1);
-          updateDisplay();
-        }
-      });
-      
-      // Submit button
-      submitPinBtn.addEventListener('click', function() {
-        if (currentPin.length > 0) {
-          submitPin();
-        }
-      });
-      
-      // Keyboard input for PIN
-      document.addEventListener('keydown', function(e) {
-        if (pinLoginModal.style.display === 'flex') {
-          if (/^\d$/.test(e.key) && currentPin.length < MAX_PIN_LENGTH) {
-            currentPin += e.key;
-            updateDisplay();
-            
-            // Auto-submit when max length reached
-            if (currentPin.length === MAX_PIN_LENGTH) {
-              setTimeout(submitPin, 300);
-            }
-          } else if (e.key === 'Backspace' && currentPin.length > 0) {
-            currentPin = currentPin.slice(0, -1);
-            updateDisplay();
-          } else if (e.key === 'Enter' && currentPin.length > 0) {
-            submitPin();
-          } else if (e.key === 'Escape') {
-            hideModal();
-          }
-        }
-      });
-      
-      // Show modal if showLogin parameter is present
-      if (showLoginParam) {
-        showModal();
-      }
-      
-      // After successful login, store role in session storage
-      function handleLoginResponse(role) {
-        if (role) {
-          sessionStorage.setItem('userRole', role);
-        }
       }
     });
   </script>

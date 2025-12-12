@@ -1,0 +1,22 @@
+// routes/staffAuthRoutes.js
+//
+// Staff authentication and admin user management routes.
+// Mounted only when AUTH_ENABLED=true to avoid changing current behaviour.
+
+const express = require('express');
+const router = express.Router();
+
+const staffAuthController = require('../controllers/staffAuthController');
+const { requireStaffAuth, requireStaffRole, allowBootstrapOrRole } = require('../middlewares/staffAuth');
+
+router.get('/login', staffAuthController.showLoginPage);
+router.post('/login', staffAuthController.handleLogin);
+router.post('/logout', staffAuthController.handleLogout);
+router.get('/logout', staffAuthController.handleLogout);
+
+// Admin user management
+router.get('/admin/users', allowBootstrapOrRole('admin'), staffAuthController.showAdminPage);
+router.get('/api/users', requireStaffRole('admin'), staffAuthController.listUsers);
+router.post('/api/users', allowBootstrapOrRole('admin'), staffAuthController.createUser);
+
+module.exports = router;

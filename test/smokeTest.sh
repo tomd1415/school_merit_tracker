@@ -1,14 +1,21 @@
 #!/bin/bash
 
-FULL_PIN="999999"
-LOGIN_URL="http://localhost:3000/check-pin"
+# Simple smoke test using staff auth. Set STAFF_USERNAME and STAFF_PASSWORD in your env.
+USERNAME="${STAFF_USERNAME:-}"
+PASSWORD="${STAFF_PASSWORD:-}"
+LOGIN_URL="http://localhost:3000/staff/login"
 COOKIE_FILE="cookies.txt"
 
-echo "Logging in for Smoke Test..."
-curl -s -c $COOKIE_FILE -d "pin=$FULL_PIN" -X POST $LOGIN_URL -H "Content-Type: application/x-www-form-urlencoded" -o /dev/null -w "%{http_code}"
+if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+  echo "Set STAFF_USERNAME and STAFF_PASSWORD to run this smoke test."
+  exit 0
+fi
 
-SESSION_COOKIE=$(grep connect.sid $COOKIE_FILE | awk '{print $7"="$8}')
-echo $SESSION_COOKIE >session_cookie.txt
+echo "Logging in for Smoke Test..."
+curl -s -c "$COOKIE_FILE" -X POST "$LOGIN_URL" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" \
+  -o /dev/null -w "%{http_code}"
 
 URLS=(
   "http://localhost:3000/"
@@ -18,13 +25,12 @@ URLS=(
   "http://localhost:3000/forms"
   "http://localhost:3000/upload/csv/pupils"
   "http://localhost:3000/upload/csv/merits"
-  "http://localhost:3000/logout"
 )
 
 echo ""
 echo "Running Smoke Tests..."
 for url in "${URLS[@]}"; do
-  status=$(curl -o /dev/null -s -w "%{http_code}\n" -b $COOKIE_FILE -L $url)
+  status=$(curl -o /dev/null -s -w "%{http_code}\n" -b "$COOKIE_FILE" -L "$url")
   if [ "$status" -eq 200 ] || [ "$status" -eq 303 ]; then
     echo "[PASS] $url"
   else
@@ -32,4 +38,4 @@ for url in "${URLS[@]}"; do
   fi
 done
 
-rm $COOKIE_FILE
+rm "$COOKIE_FILE"

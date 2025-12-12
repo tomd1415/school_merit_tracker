@@ -1,6 +1,6 @@
 # School Merit Tracker
 
-A Node.js + Express + PostgreSQL app for running the school's AP reward system. Staff can manage pupils, forms, prizes and orders, sell prizes to pupils, and keep stock and fulfilment in sync. Authentication uses PIN-based roles for purchase-only or full access.
+A Node.js + Express + PostgreSQL app for running the school's AP reward system. Staff can manage pupils, forms, prizes and orders, sell prizes to pupils, and keep stock and fulfilment in sync. Authentication now uses per-staff username/password with roles.
 
 ---
 
@@ -14,11 +14,13 @@ A Node.js + Express + PostgreSQL app for running the school's AP reward system. 
 ---
 
 ## 2) Auth model
-- PIN-based session roles:
-  - `purchase` role: access purchase flow and orders.
-  - `full` role: access everything.
-- PINs come from `.env` (`PURCHASE_PIN`, `FULL_PIN`). Session is stored in memory with 1-hour expiry.
-- Session secret comes from `.env` (`SESSION_SECRET`). If missing, a random secret is generated at runtime (sessions reset on restart); set it for production.
+- Staff auth (default ON): username/password stored in `staff_users`, roles in `staff_roles`.
+  - `staff` role: purchase flow only (and related APIs).
+  - `admin` role: everything.
+- Login at `/staff/login`. On success:
+  - admin → `/`
+  - staff → `/purchase`
+- Sessions are cookie-based (`connect.sid`), 1-hour expiry, signed with `SESSION_SECRET` (set in `.env`).
 
 ---
 
@@ -36,6 +38,7 @@ A Node.js + Express + PostgreSQL app for running the school's AP reward system. 
 Existing databases should run:
 - `migrations/20240904_purchase_status.sql` to add `status` and `fulfilled_at` to `purchase` and backfill data.
 - `migrations/20250314_cycle_stock.sql` to add cycle-based prize stock support (columns, helper function, refreshed `prize_stock` view).
+- Required for staff auth: `migrations/20241211_staff_auth.sql` (new tables for staff users/roles/audit).
 
 ---
 
@@ -62,8 +65,7 @@ Existing databases should run:
   DB_USER=merit_user
   DB_PASS=yourpassword
   DB_NAME=merits
-  PURCHASE_PIN=111111
-  FULL_PIN=222222
+  AUTH_ENABLED=true
   ```
   (Ensure the DB user exists and has rights on the target database.)
 - Create DB + load schema (fresh install):
@@ -75,10 +77,11 @@ Existing databases should run:
   ```
   psql -U merit_user -d merits -f migrations/20240904_purchase_status.sql
   psql -U merit_user -d merits -f migrations/20250314_cycle_stock.sql
+  psql -U merit_user -d merits -f migrations/20241211_staff_auth.sql
   ```
 - Optional test data for local dev: `psql -U merit_user -d merits -f testdata/seed_test_data.sql`
 - Run the app: `npm start` (or `node server.js`), then open `http://localhost:3000`.
-- PIN login: enter `PURCHASE_PIN` for purchase-only access, `FULL_PIN` for full access.
+- First admin user: after enabling auth and running migrations, open `/staff/admin/users` to create the first account (auto-gets `admin`). Subsequent user creation requires an admin login.
 
 ## 6) Usage guide
 - Prizes (`/prizes`):
@@ -127,5 +130,5 @@ Existing databases should run:
 
 ## 10) Future considerations
 - Move sessions to a persistent store for production.
-- Harden auth beyond shared PINs.
-- Add automated tests for stock/merit edge cases and order state transitions. 
+- Add automated tests for stock/merit edge cases and order state transitions.
+- Add email-backed password reset and account lockout.
