@@ -17,7 +17,10 @@
   <header>
     <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
     <h1>Purchase Prizes</h1>
-    <button id="signOutBtn">Sign Out</button>
+    <div class="header-actions">
+      <button id="changePasswordBtn" class="secondary-btn">Change Password</button>
+      <button id="signOutBtn">Sign Out</button>
+    </div>
   </header>
 
   <main>
@@ -76,7 +79,31 @@
     </div>
   </div>
 
+  <!-- Change Password Modal -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <span id="closeChangePassword" class="close">&times;</span>
+      <h2>Change Password</h2>
+      <form id="changePasswordForm">
+        <label for="currentPassword">Current password</label>
+        <input type="password" id="currentPassword" name="currentPassword" required />
+
+        <label for="newPassword">New password</label>
+        <input type="password" id="newPassword" name="newPassword" required minlength="8" />
+
+        <label for="confirmPassword">Confirm new password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" />
+
+        <div id="changePasswordStatus" class="form-status"></div>
+
+        <div class="modal-buttons">
+          <button type="submit" id="submitChangePassword">Update Password</button>
+          <button type="button" id="cancelChangePassword" class="secondary-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="purchase.js"></script>
 </body>
 </html>
-

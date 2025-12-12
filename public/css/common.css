@@ -63,6 +63,16 @@ h1 {
   letter-spacing: 0.5px;
 }
 
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.header-actions button {
+  min-width: 130px;
+}
+
 /* Main content area */
 main {
   max-width: 1200px;
@@ -135,6 +145,54 @@ button:active {
 
 .delete-btn:hover {
   background-color: var(--danger-light);
+}
+
+.secondary-btn {
+  background-color: var(--gray);
+}
+
+.secondary-btn:hover {
+  background-color: var(--dark);
+}
+
+.form-status {
+  margin-top: var(--spacing-sm);
+  font-size: 14px;
+  min-height: 18px;
+}
+
+.form-status.error { color: var(--danger); }
+.form-status.success { color: var(--success); }
+.form-status.info { color: var(--secondary); }
+
+/* Change password modal */
+#changePasswordForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+#changePasswordForm label {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+#changePasswordForm input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  font-size: 15px;
+}
+
+#changePasswordForm input:focus {
+  outline: 2px solid var(--primary-light);
+  border-color: var(--primary-light);
+}
+
+#changePasswordModal .modal-content {
+  max-width: 520px;
 }
 
 /* Form styling */

@@ -41,10 +41,63 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmationMessage = document.getElementById('confirmationMessage');
   const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
   const signOutBtn = document.getElementById('signOutBtn');
+  const changePasswordBtn = document.getElementById('changePasswordBtn');
+  const changePasswordModal = document.getElementById('changePasswordModal');
+  const closeChangePassword = document.getElementById('closeChangePassword');
+  const changePasswordForm = document.getElementById('changePasswordForm');
+  const changePasswordStatus = document.getElementById('changePasswordStatus');
+  const cancelChangePassword = document.getElementById('cancelChangePassword');
 
   // Event Handlers
   signOutBtn.addEventListener('click', () => {
     window.location.href = '/staff/logout';
+  });
+
+  const showChangePasswordModal = () => {
+    changePasswordStatus.textContent = '';
+    changePasswordStatus.className = 'form-status';
+    changePasswordForm.reset();
+    showModal(changePasswordModal);
+  };
+
+  const hideChangePasswordModal = () => hideModal(changePasswordModal);
+
+  changePasswordBtn.addEventListener('click', showChangePasswordModal);
+  closeChangePassword.addEventListener('click', hideChangePasswordModal);
+  cancelChangePassword.addEventListener('click', hideChangePasswordModal);
+
+  changePasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    changePasswordStatus.textContent = 'Updating...';
+    changePasswordStatus.className = 'form-status info';
+
+    const payload = {
+      currentPassword: changePasswordForm.currentPassword.value,
+      newPassword: changePasswordForm.newPassword.value,
+      confirmPassword: changePasswordForm.confirmPassword.value,
+    };
+
+    try {
+      const res = await fetch('/staff/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        const msg = data.error || 'Failed to change password.';
+        changePasswordStatus.textContent = msg;
+        changePasswordStatus.className = 'form-status error';
+        return;
+      }
+      changePasswordStatus.textContent = 'Password updated.';
+      changePasswordStatus.className = 'form-status success';
+      setTimeout(hideChangePasswordModal, 1000);
+    } catch (err) {
+      console.error('Error changing password:', err);
+      changePasswordStatus.textContent = 'Error updating password.';
+      changePasswordStatus.className = 'form-status error';
+    }
   });
 
   // 1) Load all prizes
@@ -451,6 +504,8 @@ document.addEventListener('DOMContentLoaded', () => {
       hideModal(pupilModal);
     } else if (e.target === confirmationModal) {
       hideModal(confirmationModal);
+    } else if (e.target === changePasswordModal) {
+      hideChangePasswordModal();
     }
   });
 });

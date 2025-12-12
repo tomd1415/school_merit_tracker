@@ -8,12 +8,14 @@
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/home.css" />
+  <link rel="stylesheet" href="/css/modal.css" />
 </head>
 <body>
   <header>
     <img src="/images/exhall-grange-logo.png" alt="Exhall Grange School Logo" class="exhall-logo">
     <h1>School APs Tracker</h1>
-    <div class="header-buttons">
+    <div class="header-actions">
+      <button id="changePasswordBtn" class="secondary-btn">Change Password</button>
       <button id="signOutBtn">Sign Out</button>
     </div>
   </header>
@@ -75,15 +77,112 @@
       </div>
     </div>
   </main>
-  
+
+  <!-- Change Password Modal -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <span id="closeChangePassword" class="close">&times;</span>
+      <h2>Change Password</h2>
+      <form id="changePasswordForm">
+        <label for="currentPassword">Current password</label>
+        <input type="password" id="currentPassword" name="currentPassword" required />
+
+        <label for="newPassword">New password</label>
+        <input type="password" id="newPassword" name="newPassword" required minlength="8" />
+
+        <label for="confirmPassword">Confirm new password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" />
+
+        <div id="changePasswordStatus" class="form-status"></div>
+
+        <div class="modal-buttons">
+          <button type="submit" id="submitChangePassword">Update Password</button>
+          <button type="button" id="cancelChangePassword" class="secondary-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const signOutBtn = document.getElementById('signOutBtn');
+      const changePasswordBtn = document.getElementById('changePasswordBtn');
+      const changePasswordModal = document.getElementById('changePasswordModal');
+      const closeChangePassword = document.getElementById('closeChangePassword');
+      const changePasswordForm = document.getElementById('changePasswordForm');
+      const changePasswordStatus = document.getElementById('changePasswordStatus');
+      const cancelChangePassword = document.getElementById('cancelChangePassword');
+
+      const showModal = (el) => {
+        if (!el) return;
+        el.style.display = 'flex';
+        setTimeout(() => el.classList.add('show'), 10);
+      };
+      const hideModal = (el) => {
+        if (!el) return;
+        el.classList.remove('show');
+        setTimeout(() => { el.style.display = 'none'; }, 300);
+      };
+
       if (signOutBtn) {
         signOutBtn.addEventListener('click', function() {
           window.location.href = '/staff/logout';
         });
       }
+
+      const showChangePasswordModal = () => {
+        if (!changePasswordForm || !changePasswordStatus || !changePasswordModal) return;
+        changePasswordStatus.textContent = '';
+        changePasswordStatus.className = 'form-status';
+        changePasswordForm.reset();
+        showModal(changePasswordModal);
+      };
+      const hideChangePasswordModal = () => hideModal(changePasswordModal);
+
+      if (changePasswordBtn) changePasswordBtn.addEventListener('click', showChangePasswordModal);
+      if (closeChangePassword) closeChangePassword.addEventListener('click', hideChangePasswordModal);
+      if (cancelChangePassword) cancelChangePassword.addEventListener('click', hideChangePasswordModal);
+
+      if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          changePasswordStatus.textContent = 'Updating...';
+          changePasswordStatus.className = 'form-status info';
+
+          const payload = {
+            currentPassword: changePasswordForm.currentPassword.value,
+            newPassword: changePasswordForm.newPassword.value,
+            confirmPassword: changePasswordForm.confirmPassword.value,
+          };
+
+          try {
+            const res = await fetch('/staff/change-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+              const msg = data.error || 'Failed to change password.';
+              changePasswordStatus.textContent = msg;
+              changePasswordStatus.className = 'form-status error';
+              return;
+            }
+            changePasswordStatus.textContent = 'Password updated.';
+            changePasswordStatus.className = 'form-status success';
+            setTimeout(hideChangePasswordModal, 1000);
+          } catch (err) {
+            changePasswordStatus.textContent = 'Error updating password.';
+            changePasswordStatus.className = 'form-status error';
+          }
+        });
+      }
+
+      window.addEventListener('click', (e) => {
+        if (e.target === changePasswordModal) {
+          hideChangePasswordModal();
+        }
+      });
     });
   </script>
 </body>

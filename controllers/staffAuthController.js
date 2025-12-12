@@ -136,6 +136,58 @@ exports.handleLogout = (req, res) => {
   return res.redirect(303, '/staff/login');
 };
 
+exports.changePassword = async (req, res) => {
+  if (!authEnabled) return featureDisabled(res);
+
+  const user = req.session && req.session.staffUser;
+  if (!user) {
+    return res.status(401).json({ error: 'Login required' });
+  }
+
+  const { currentPassword, newPassword, confirmPassword } = req.body || {};
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ error: 'New passwords do not match' });
+  }
+  if (String(newPassword).length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    const userResult = await pool.query(
+      `SELECT password_hash FROM staff_users WHERE staff_user_id = $1 AND active = TRUE`,
+      [user.id]
+    );
+    if (userResult.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found or inactive' });
+    }
+
+    const { password_hash } = userResult.rows[0];
+    const valid = verifyPassword(currentPassword, password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const newHash = hashPassword(newPassword);
+    await pool.query(
+      `
+        UPDATE staff_users
+           SET password_hash = $1,
+               last_password_change_at = NOW()
+         WHERE staff_user_id = $2
+      `,
+      [newHash, user.id]
+    );
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Error changing password:', err);
+    return res.status(500).json({ error: 'Failed to change password' });
+  }
+};
+
 exports.listUsers = async (req, res) => {
   if (!authEnabled) return featureDisabled(res);
   if (!ensureAdmin(req, res)) return;

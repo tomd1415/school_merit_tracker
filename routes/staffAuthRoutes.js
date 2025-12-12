@@ -13,6 +13,7 @@ router.get('/login', staffAuthController.showLoginPage);
 router.post('/login', staffAuthController.handleLogin);
 router.post('/logout', staffAuthController.handleLogout);
 router.get('/logout', staffAuthController.handleLogout);
+router.post('/change-password', requireStaffAuth, staffAuthController.changePassword);
 
 // Admin user management
 router.get('/admin/users', allowBootstrapOrRole('admin'), staffAuthController.showAdminPage);
