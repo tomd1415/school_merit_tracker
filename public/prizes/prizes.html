@@ -20,6 +20,9 @@
       <div class="button-group">
         <button id="addPrizeBtn" class="primary-btn">Add New Prize</button>
       </div>
+      <div class="search-group">
+        <input type="text" id="prizeSearch" placeholder="Search prizes..." class="search-input">
+      </div>
       <div class="view-toggle">
         <span>View:</span>
         <div class="toggle-pill" id="viewToggle">
@@ -42,9 +45,10 @@
           <thead>
             <tr>
               <th>Description</th>
+              <th class="image-col">Image</th>
               <th>APs</th>
-              <th>Lost/Spoiled</th>
-              <th>Stock / Spaces</th>
+              <th class="stock-adjustment">Lost/Spoiled</th>
+              <th class="current-stock">Stock / Spaces</th>
               <th>Mode</th>
               <th>Active</th>
               <th>Actions</th>

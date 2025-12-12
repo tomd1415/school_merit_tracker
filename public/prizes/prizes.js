@@ -10,21 +10,40 @@ function isoDayName(iso) {
   return names[(iso - 1 + 7) % 7] || 'Monday';
 }
 
+function getFilteredPrizes() {
+  const searchInput = document.getElementById('prizeSearch');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  if (!query) return [...allPrizes];
+  return allPrizes.filter(prize =>
+    (prize.description || '').toLowerCase().includes(query)
+  );
+}
+
 function renderTableView() {
   const tbody = document.querySelector('#prizeTable tbody');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  allPrizes.forEach(prize => {
+  const prizes = getFilteredPrizes();
+  const columnCount = document.querySelectorAll('#prizeTable thead th').length || 8;
+
+  if (!prizes.length) {
+    const emptyRow = document.createElement('tr');
+    emptyRow.innerHTML = `<td class="empty-row" colspan="${columnCount}">No prizes match your search.</td>`;
+    tbody.appendChild(emptyRow);
+    return;
+  }
+
+  prizes.forEach(prize => {
     const row = document.createElement('tr');
     row.setAttribute('data-prize-id', prize.prize_id);
     row.setAttribute('data-cycle-limited', prize.is_cycle_limited);
 
-  const spacesPerCycle = prize.spaces_per_cycle ?? 0;
-  const cycleWeeksValue = prize.cycle_weeks ?? 0;
-  const resetDayValue = prize.reset_day_iso ?? 1;
-  const stockModeLabel = prize.is_cycle_limited ? 'Cycle' : 'Total';
-  const stockNumber = Math.max(prize.current_stock ?? 0, 0);
+    const spacesPerCycle = prize.spaces_per_cycle ?? 0;
+    const cycleWeeksValue = prize.cycle_weeks ?? 0;
+    const resetDayValue = prize.reset_day_iso ?? 1;
+    const stockModeLabel = prize.is_cycle_limited ? 'Cycle' : 'Total';
+    const stockNumber = Math.max(prize.current_stock ?? 0, 0);
     const stockMeta = prize.is_cycle_limited
       ? `${stockNumber}/${spacesPerCycle} left • ${formatCycleWeeks(cycleWeeksValue)} • ${isoDayName(resetDayValue)}`
       : `${stockNumber} in stock`;
@@ -34,6 +53,9 @@ function renderTableView() {
 
     row.innerHTML = `
       <td data-field="description">${prize.description}</td>
+      <td data-field="image_path">
+        ${prize.image_path ? `<img src="${prize.image_path}" alt="Prize image">` : '<span class="muted-text">No image</span>'}
+      </td>
       <td data-field="cost_merits">${prize.cost_merits}</td>
       <td data-field="stock_adjustment" data-raw="${prize.stock_adjustment}">${prize.stock_adjustment}</td>
       <td class="current_stock">${stockMeta}</td>
@@ -58,7 +80,20 @@ function renderPaneView() {
   if (!list || !detail) return;
   list.innerHTML = '';
 
-  allPrizes.forEach(prize => {
+  const prizes = getFilteredPrizes();
+
+  if (!prizes.length) {
+    list.innerHTML = '<div class="muted-text" style="padding: 8px 4px;">No prizes match your search.</div>';
+    detail.innerHTML = '<div class="detail-placeholder"><p>No prizes found for this search.</p></div>';
+    selectedPrizeId = null;
+    return;
+  }
+
+  if (!selectedPrizeId || !prizes.some(p => p.prize_id === selectedPrizeId)) {
+    selectedPrizeId = prizes[0].prize_id;
+  }
+
+  prizes.forEach(prize => {
     const stockNumber = Math.max(prize.current_stock ?? 0, 0);
     const spacesPerCycle = prize.spaces_per_cycle ?? 0;
     const chipText = prize.is_cycle_limited
@@ -80,14 +115,10 @@ function renderPaneView() {
     item.addEventListener('click', () => {
       selectedPrizeId = prize.prize_id;
       renderPaneView();
-      renderPrizeDetail(prize.prize_id);
     });
     list.appendChild(item);
   });
 
-  if (!selectedPrizeId && allPrizes.length) {
-    selectedPrizeId = allPrizes[0].prize_id;
-  }
   renderPrizeDetail(selectedPrizeId);
 }
 
@@ -253,8 +284,9 @@ function switchView(view) {
   if (view === 'table') {
     renderTableView();
   } else {
-    if (!selectedPrizeId && allPrizes.length) {
-      selectedPrizeId = allPrizes[0].prize_id;
+    const filtered = getFilteredPrizes();
+    if ((!selectedPrizeId || !filtered.some(p => p.prize_id === selectedPrizeId)) && filtered.length) {
+      selectedPrizeId = filtered[0].prize_id;
     }
     renderPaneView();
   }
@@ -434,10 +466,19 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2) Load the initial prizes data
+  // 2) Prize search filter
+  const prizeSearch = document.getElementById('prizeSearch');
+  if (prizeSearch) {
+    prizeSearch.addEventListener('input', () => {
+      renderTableView();
+      renderPaneView();
+    });
+  }
+
+  // 3) Load the initial prizes data
   loadPrizes();
 
-  // 3) Setup the "Add Prize" modal open/close
+  // 4) Setup the "Add Prize" modal open/close
   document.getElementById('addPrizeBtn').addEventListener('click', () => {
     showModal(document.getElementById('addPrizeModal'));
   });
@@ -448,10 +489,10 @@ window.addEventListener('DOMContentLoaded', () => {
     hideModal(document.getElementById('addPrizeModal'));
   });
 
-  // 4) Handle "Add Prize" form submission
+  // 5) Handle "Add Prize" form submission
   document.getElementById('addPrizeForm').addEventListener('submit', addPrizeHandler);
 
-  // 5) Setup the "Edit Prize" modal open/close
+  // 6) Setup the "Edit Prize" modal open/close
   document.getElementById('closeEditPrizeModal').addEventListener('click', () => {
     hideModal(document.getElementById('editPrizeModal'));
   });
@@ -459,13 +500,13 @@ window.addEventListener('DOMContentLoaded', () => {
     hideModal(document.getElementById('editPrizeModal'));
   });
 
-  // 6) Handle "Edit Prize" form submission
+  // 7) Handle "Edit Prize" form submission
   document.getElementById('editPrizeForm').addEventListener('submit', editPrizeFormHandler);
 
-  // 7) Delegate table clicks for "Edit" / "Delete" buttons
+  // 8) Delegate table clicks for "Edit" / "Delete" buttons
   document.querySelector('#prizeTable tbody').addEventListener('click', tableButtonHandler);
   
-  // 8) Setup stock info modal
+  // 9) Setup stock info modal
   document.getElementById('closeStockInfoModal').addEventListener('click', () => {
     hideModal(document.getElementById('stockInfoModal'));
   });
@@ -473,17 +514,17 @@ window.addEventListener('DOMContentLoaded', () => {
     hideModal(document.getElementById('stockInfoModal'));
   });
   
-  // 9) Add help icon to the stock adjustment header
+  // 10) Add help icon to the stock adjustment header
   addStockHelpIcon();
 
-  // 10) Cycle toggle visibility
+  // 11) Cycle toggle visibility
   initCycleToggle('addPrizeCycleLimited', 'addPrizeCycleFields');
   initCycleToggle('editPrizeCycleLimited', 'editPrizeCycleFields');
 
-  // 11) Subtle scroll hint on table
+  // 12) Subtle scroll hint on table
   initTableScrollHint();
 
-  // 12) View toggle (table vs pane)
+  // 13) View toggle (table vs pane)
   const viewToggle = document.getElementById('viewToggle');
   if (viewToggle) {
     viewToggle.addEventListener('click', (e) => {

@@ -1,5 +1,26 @@
 /* public/prizes/prizes.css - Page-specific styles only */
 
+/* Search bar */
+.search-group {
+  flex: 1;
+  min-width: 240px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 58, 105, 0.2);
+}
+
 /* Image handling in table */
 [data-field="image_path"] {
   text-align: center;
@@ -28,6 +49,11 @@
   background-color: rgba(0, 123, 255, 0.1);
   border: 2px dashed var(--secondary);
   padding: var(--spacing-md);
+}
+
+#prizeTable th.image-col {
+  text-align: center;
+  width: 110px;
 }
 
 /* Current stock cell styling */
@@ -146,14 +172,14 @@
 
 /* Make stock columns a bit tighter to free width for buttons */
 td[data-field="stock_adjustment"],
-th:nth-child(6) {
-  width: 95px;
+#prizeTable th.stock-adjustment {
+  width: 110px;
   text-align: center;
 }
 
 td.current_stock,
-th:nth-child(10) {
-  width: 95px;
+#prizeTable th.current-stock {
+  width: 140px;
   text-align: center;
 }
 
@@ -552,6 +578,16 @@ td[data-field="total_stocked_ever"],
 td[data-field="stock_adjustment"],
 td.current_stock {
   text-align: center;
+}
+
+.empty-row {
+  text-align: center;
+  color: var(--gray);
+  font-style: italic;
+}
+
+.muted-text {
+  color: var(--gray);
 }
 
 /* Compact stock adjustment styling for inline editing */
